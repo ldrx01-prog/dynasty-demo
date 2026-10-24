@@ -1,0 +1,1638 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Dynasty Performance Center</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: sticky brand header + mode bar, one working column (max 1100px), fixed bottom tab bar. Single dark look taken from the logo. */
+:root{
+  --ink:#060807;        /* page */
+  --panel:#101614;      /* raised surfaces */
+  --panel-2:#17201d;    /* inputs, hover */
+  --line:#24312d;       /* hairlines */
+  --teal:#2A8C88;       /* brand teal */
+  --teal-hi:#4FC1B9;    /* teal on dark, for text */
+  --cream:#F0EBDD;      /* primary text */
+  --muted:#93A39D;      /* secondary text */
+  --warn:#E3B04B;
+  --bad:#E06B5B;
+  --good:#5CC48A;
+  --c-gil:#4FC1B9; --c-johan:#E3B04B; --c-ozzy:#8FA8F0; --c-gilsr:#D58BD0;
+  --display:"Barlow Condensed","Arial Narrow",Impact,sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{background:var(--ink);color:var(--cream)}
+body{font-family:var(--body);font-size:15px;line-height:1.45;padding-bottom:calc(72px + env(safe-area-inset-bottom,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--ink)}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--teal-hi);outline-offset:2px}
+.wrap{max-width:1100px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--display);font-weight:700;letter-spacing:.02em;text-transform:uppercase;margin:0;text-wrap:balance}
+h2{font-size:26px}
+h3{font-size:18px;letter-spacing:.04em}
+.num{font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.label{font-family:var(--display);font-weight:600;text-transform:uppercase;letter-spacing:.08em;font-size:13px;color:var(--muted)}
+
+/* header */
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--ink);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:12px;padding-block:10px}
+.brand img{width:46px;height:46px;border-radius:50%;flex:none}
+.brand .name{font-family:var(--display);font-weight:800;font-size:24px;letter-spacing:.06em;line-height:1}
+.brand .sub{font-family:var(--display);font-weight:600;font-size:12px;letter-spacing:.22em;color:var(--teal-hi)}
+.brand .spacer{flex:1}
+.callpill{display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--cream);border:1px solid var(--teal);border-radius:999px;padding:6px 12px;font-size:13px;white-space:nowrap}
+.callpill svg{width:16px;height:16px;flex:none}
+.modebar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;padding-block:0 10px}
+.seg{display:inline-flex;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:3px}
+.seg button{border:0;background:none;padding:6px 14px;border-radius:7px;font-family:var(--display);font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:14px;color:var(--muted)}
+.seg button.on{background:var(--teal);color:#fff}
+select.pick{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:7px 10px;min-width:0;max-width:100%}
+.demo-tag{font-size:12px;color:var(--warn);border:1px dashed var(--warn);border-radius:6px;padding:2px 8px;white-space:nowrap}
+
+/* tabs at bottom */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--panel);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+nav.tabs .wrap{display:grid;grid-auto-flow:column;grid-auto-columns:1fr}
+nav.tabs button{background:none;border:0;padding:10px 4px 9px;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted);font-family:var(--display);font-weight:600;letter-spacing:.06em;text-transform:uppercase;font-size:12px}
+nav.tabs button svg{width:22px;height:22px}
+nav.tabs button.on{color:var(--teal-hi)}
+
+main{padding-block:16px 24px;display:flex;flex-direction:column;gap:16px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.between{justify-content:space-between}
+.grow{flex:1;min-width:0}
+
+/* buttons */
+.btn{border:1px solid var(--line);background:var(--panel-2);border-radius:10px;padding:8px 14px;font-weight:500;display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:var(--cream)}
+.btn:hover{border-color:var(--teal)}
+.btn.primary{background:var(--teal);border-color:var(--teal);color:#fff}
+.btn.danger{border-color:var(--bad);color:var(--bad);background:transparent}
+.btn.ghost{background:transparent}
+.btn.sm{padding:5px 10px;font-size:13px;border-radius:8px}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.iconbtn{width:38px;height:38px;border-radius:50%;border:1px solid var(--teal);background:transparent;display:inline-grid;place-items:center;color:var(--teal-hi);flex:none;text-decoration:none}
+.iconbtn svg{width:18px;height:18px}
+
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px}
+.chip{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:2px 9px;font-size:12px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.chip.teal{border-color:var(--teal);color:var(--teal-hi)}
+.chip.warn{border-color:var(--warn);color:var(--warn)}
+.chip.bad{border-color:var(--bad);color:var(--bad)}
+.chip.good{border-color:var(--good);color:var(--good)}
+.dot{width:8px;height:8px;border-radius:50%;flex:none;display:inline-block}
+
+/* schedule */
+.weekstrip{display:grid;grid-template-columns:auto repeat(7,minmax(0,1fr)) auto;gap:6px;align-items:stretch}
+.weekstrip .nav{background:var(--panel);border:1px solid var(--line);border-radius:10px;width:34px;display:grid;place-items:center;color:var(--muted)}
+.day{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:6px 2px;text-align:center;min-width:0}
+.day .dn{font-family:var(--display);font-weight:700;letter-spacing:.06em;font-size:14px}
+.day .dd{font-size:12px;color:var(--muted)}
+.day .open{font-size:11px;color:var(--teal-hi);margin-top:2px}
+.day.on{border-color:var(--teal);background:#0f2a28}
+.day.today .dn::after{content:" •";color:var(--teal-hi)}
+.day.closed{opacity:.45}
+.xtra{display:inline-block;font-size:10px;letter-spacing:.06em;color:var(--warn);font-weight:600}
+.hour{display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:start;padding-block:10px;border-top:1px solid var(--line)}
+.hour:first-child{border-top:0}
+.hour .t{font-family:var(--display);font-weight:700;font-size:20px;line-height:1.1}
+.hour .t span{display:block;font-size:11px;color:var(--muted);font-weight:500;letter-spacing:.04em}
+.spots{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px;min-width:0}
+.spot{border:1px solid var(--line);border-radius:12px;padding:9px 11px;background:var(--panel-2);text-align:left;display:flex;flex-direction:column;gap:3px;min-width:0;border-left-width:4px}
+.spot .who{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.spot .meta{font-size:12px;color:var(--muted);display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.spot.open{border-style:dashed;border-left-style:solid;background:transparent;color:var(--teal-hi)}
+.spot.off{background:repeating-linear-gradient(135deg,transparent 0 8px,#141a18 8px 16px);color:var(--muted)}
+.spot.done{opacity:.72}
+.spot.cancel{opacity:.6;text-decoration:line-through}
+.spot.add{border-style:dashed;background:transparent;color:var(--muted);align-items:center;justify-content:center;flex-direction:row;border-left-width:1px}
+.hour-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.past .t{color:var(--muted)}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+
+/* lists */
+.list{display:flex;flex-direction:column}
+.item{display:flex;align-items:center;gap:12px;padding:11px 4px;border-top:1px solid var(--line);min-width:0}
+.item:first-child{border-top:0}
+.item .main{flex:1;min-width:0;cursor:pointer}
+.item .nm{font-weight:600}
+.avatar{width:40px;height:40px;border-radius:50%;background:#123b38;color:var(--teal-hi);display:grid;place-items:center;font-family:var(--display);font-weight:700;font-size:16px;flex:none;letter-spacing:.04em}
+.filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.filters input,.filters select,.field input,.field select,.field textarea{background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-width:0}
+.filters input[type=search]{flex:1 1 220px}
+.filters input[type=number]{width:72px}
+.togglechip{border:1px solid var(--line);background:transparent;border-radius:999px;padding:5px 12px;font-size:13px;color:var(--muted)}
+.togglechip.on{border-color:var(--teal);color:var(--cream);background:#0f2a28}
+
+/* profile */
+.prof-head{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.prof-head .avatar{width:64px;height:64px;font-size:24px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:14px}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0;min-width:0;overflow-wrap:anywhere}
+.subtabs{display:flex;gap:6px;border-bottom:1px solid var(--line);overflow-x:auto}
+.subtabs button{background:none;border:0;border-bottom:2px solid transparent;padding:8px 12px;font-family:var(--display);font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+.subtabs button.on{color:var(--cream);border-bottom-color:var(--teal-hi)}
+.meter{height:8px;background:var(--panel-2);border-radius:99px;overflow:hidden}
+.meter i{display:block;height:100%;background:var(--teal)}
+.preview-banner{border:1px dashed var(--warn);color:var(--warn);border-radius:10px;padding:8px 12px;font-size:13px}
+.stat{display:flex;flex-direction:column;gap:2px;min-width:0}
+.stat .v{font-family:var(--display);font-weight:700;font-size:26px;line-height:1}
+.stat .u{font-size:12px;color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.stats .card{display:flex;flex-direction:column;gap:6px}
+svg text{fill:var(--muted);font-family:var(--body)}
+.video{aspect-ratio:16/9;max-width:100%;border-radius:12px;background:radial-gradient(circle at 30% 40%,#1d4a46,#0a1312 70%);display:grid;place-items:center;border:1px solid var(--line);position:relative;overflow:hidden}
+.video .play{width:56px;height:56px;border-radius:50%;background:rgba(240,235,221,.9);display:grid;place-items:center}
+.video .cap{position:absolute;left:10px;bottom:8px;font-size:12px;color:var(--cream);background:rgba(0,0,0,.55);padding:2px 8px;border-radius:6px}
+.comment{border-left:3px solid var(--teal);padding:4px 10px;font-size:14px}
+.comment b{font-weight:600}
+
+/* modal */
+.scrim{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:40;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--panel);border:1px solid var(--line);border-radius:18px 18px 0 0;width:100%;max-width:560px;max-height:88vh;overflow:auto;padding:18px max(18px,env(safe-area-inset-right,0px)) calc(18px + env(safe-area-inset-bottom,0px)) max(18px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:14px}
+@media (min-width:700px){.scrim{align-items:center}.sheet{border-radius:18px}}
+.sheet .x{margin-left:auto;background:none;border:0;color:var(--muted);font-size:26px;line-height:1;padding:0 4px}
+.field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.field label{font-size:13px;color:var(--muted)}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.notice{border-radius:10px;padding:10px 12px;font-size:14px}
+.notice.warn{background:#2a2210;border:1px solid var(--warn)}
+.notice.info{background:#0f2a28;border:1px solid var(--teal)}
+.notice.bad{background:#2a1512;border:1px solid var(--bad)}
+.pick-list{max-height:240px;overflow:auto;border:1px solid var(--line);border-radius:10px}
+.pick-list button{display:flex;width:100%;text-align:left;gap:10px;align-items:center;border:0;border-top:1px solid var(--line);background:none;padding:8px 10px}
+.pick-list button:first-child{border-top:0}
+.pick-list button.on{background:#0f2a28}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));background:var(--cream);color:var(--ink);padding:10px 16px;border-radius:10px;z-index:50;font-weight:500;max-width:calc(100% - 32px);box-shadow:0 6px 24px rgba(0,0,0,.4)}
+.empty{color:var(--muted);text-align:center;padding:24px 8px}
+.zelle{background:#1b1430;border:1px solid #6b4fd8;border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:6px}
+.zelle .zl{font-family:var(--display);font-weight:800;font-size:22px;color:#b9a5ff;letter-spacing:.04em}
+.copyrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.copyrow code{font-family:var(--mono);background:var(--panel-2);padding:4px 8px;border-radius:6px;overflow-wrap:anywhere}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.tile{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
+.tile .v{font-family:var(--display);font-weight:700;font-size:30px;line-height:1}
+/* analyzer */
+.an-grid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:16px;align-items:start}
+@media (max-width:900px){.an-grid{grid-template-columns:minmax(0,1fr)}}
+.an-main{display:flex;flex-direction:column;gap:10px;min-width:0}
+.an-side{display:flex;flex-direction:column;gap:16px;min-width:0}
+.stage{position:relative;max-width:100%;aspect-ratio:16/9;background:#000;border-radius:12px;overflow:hidden;border:1px solid var(--line);margin-inline:auto;width:100%}
+.stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#000}
+.stage canvas{position:absolute;inset:0;width:100%;height:100%}
+.stage-msg{pointer-events:none;position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:16px;color:var(--muted);font-size:14px}
+.an-ctrl,.an-tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.seg.sm button{padding:4px 10px;font-size:13px}
+.seg button[disabled]{opacity:.4;cursor:not-allowed}
+.swatch{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);padding:0}
+.swatch.on{border-color:var(--cream);box-shadow:0 0 0 2px var(--teal)}
+.an-compose{display:flex;flex-direction:column;gap:8px}
+.an-compose textarea{background:var(--panel-2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;width:100%}
+.an-note.on{background:#0f2a28;border-radius:8px}
+#anSeek{accent-color:var(--teal)}
+.nofixed body{padding-bottom:0}
+.nofixed nav.tabs{position:static;border-top:0;border-bottom:1px solid var(--line);padding-bottom:0}
+.nofixed .scrim{position:absolute;inset:auto;top:0;left:0;right:0;align-items:flex-start}
+.nofixed .sheet{border-radius:18px;max-height:none}
+.nofixed .toast{position:absolute;bottom:auto}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media (max-width:520px){
+  .brand .callpill .txt{display:none}
+  .hour{grid-template-columns:52px 1fr}
+  .day .ol{display:none}
+  .day .dd{font-size:11px}
+  .xtra{font-size:0}.day .xtra::before{content:"+";font-size:12px}
+  .weekstrip{gap:4px}.weekstrip .nav{width:26px}
+  .hour .t{font-size:17px}
+  h2{font-size:22px}
+}
+/* LIGHT v2: near-white page, white cards, firm dividers, filled chips, black header + tab bar */
+:root{--ink:#F3F5F4;--panel:#FFFFFF;--panel-2:#F3F5F4;--line:#C9D1CE;--teal:#1C7570;--teal-hi:#135E5A;--cream:#0E1412;--muted:#46524D;--warn:#93600C;--bad:#A8321F;--good:#23703F;
+  --c-gil:#1C9A91;--c-johan:#D39A17;--c-ozzy:#4F6FD3;--c-gilsr:#A9539F;color-scheme:light}
+html,body{background:var(--ink);color:var(--cream)}
+body{font-size:15.5px}
+.muted{color:var(--muted)}
+h2{color:#060807;font-size:28px}
+h3{color:#060807}
+.label{color:#3C4843}
+/* header + tabs stay black */
+header.top{background:#060807;border-bottom:3px solid #2A8C88;color:#F0EBDD}
+body::before{background:#060807}
+header.top .seg{background:#141a18;border-color:#2c3a36}
+header.top .seg button{color:#A9B7B1}
+header.top .seg button.on{background:#2A8C88;color:#fff}
+header.top select.pick{background:#141a18;color:#F0EBDD;border-color:#2c3a36}
+header.top .callpill{color:#F0EBDD;border-color:#2A8C88}
+header.top .brand .sub{color:#4FC1B9}
+header.top .demo-tag{color:#E3B04B;border-color:#E3B04B}
+nav.tabs{background:#060807;border-top:0}
+nav.tabs button{color:#A9B7B1;position:relative}
+nav.tabs button.on{color:#fff}
+nav.tabs button.on::after{content:"";position:absolute;left:28%;right:28%;bottom:4px;height:3px;border-radius:3px;background:#4FC1B9}
+.nofixed nav.tabs{border-bottom:1px solid #2A8C88}
+/* surfaces */
+.card,.tile{background:#fff;border:1px solid var(--line);box-shadow:0 1px 3px rgba(14,20,18,.06)}
+.item{border-top:1px solid #DCE2E0}
+.hour{border-top:1px solid #D2D9D6;grid-template-columns:76px 1fr}
+.hour .t{border-right:2px solid #E1E6E4;padding-right:8px;color:#060807;font-size:22px}
+.hour .t span{color:#46524D;font-weight:600}
+.hour:nth-child(even){background:#FAFBFB;margin-inline:-14px;padding-inline:14px}
+.past .t{color:#8A9692}
+/* week strip */
+.day{background:#fff;border:1px solid var(--line)}
+.day .dn{color:#060807}
+.day .dd{color:#46524D}
+.day .open{color:#135E5A;font-weight:600}
+.day.on{background:#060807;border-color:#060807}
+.day.on .dn,.day.on .dd{color:#F0EBDD}
+.day.on .open{color:#4FC1B9}
+.day.closed{opacity:.55}
+.weekstrip .nav{background:#fff;border-color:var(--line);color:#060807}
+/* spots */
+.spot{background:#fff;border:1px solid #C9D1CE;border-left-width:5px;box-shadow:0 1px 2px rgba(14,20,18,.05)}
+.spot .who{color:#060807}
+.spot .meta{color:#46524D}
+.spot.open{background:#F2FAF9;border:1.5px dashed #1C7570;border-left:5px solid #1C9A91;color:#135E5A;box-shadow:none}
+.spot.open .who{color:#135E5A}
+.spot.open:hover{background:#E3F4F2}
+.spot.off{background:repeating-linear-gradient(135deg,#F5F7F6 0 8px,#E7ECEA 8px 16px);color:#6B7772;box-shadow:none}
+.spot.off .who{color:#5E6A65}
+.spot.add{background:#fff;border:1.5px dashed #9AA6A2;color:#3C4843}
+/* chips: filled, readable */
+.chip{border:0;background:#E9EDEB;color:#33403B;font-weight:500}
+.chip.teal{background:#DFF1EE;color:#135E5A}
+.chip.warn{background:#FBEFD6;color:#7A4E07}
+.chip.bad{background:#FBE2DD;color:#9A2C1B}
+.chip.good{background:#DFF2E6;color:#1E6236}
+/* controls */
+.btn{background:#fff;border:1px solid #B9C3BF;color:#0E1412;font-weight:600}
+.btn:hover{border-color:#1C7570;background:#F2FAF9}
+.btn.primary{background:#060807;border-color:#060807;color:#fff}
+.btn.primary:hover{background:#1C7570;border-color:#1C7570}
+.btn.ghost{background:transparent}
+.btn.danger{border-color:#A8321F;color:#A8321F;background:#fff}
+.iconbtn{border:1.5px solid #1C7570;color:#1C7570;background:#fff}
+.filters input,.filters select,.field input,.field select,.field textarea,.an-compose textarea{background:#fff;border:1px solid #B9C3BF;color:#0E1412}
+.togglechip{border:1px solid #B9C3BF;color:#33403B;background:#fff}
+.togglechip.on{background:#060807;border-color:#060807;color:#fff}
+.subtabs{border-bottom:2px solid #D2D9D6}
+.subtabs button{color:#5E6A65}
+.subtabs button.on{color:#060807;border-bottom:3px solid #1C9A91;margin-bottom:-2px}
+.seg:not(header .seg){background:#EEF1F0;border-color:#C9D1CE}
+.seg:not(header .seg) button.on{background:#060807;color:#fff}
+.avatar{background:#060807;color:#4FC1B9}
+.meter{background:#E3E8E6}
+.notice.warn{background:#FDF4E2;border:1px solid #E0AE4A;color:#4A3307}
+.notice.info{background:#EAF5F3;border:1px solid #1C7570;color:#0F3F3C}
+.notice.bad{background:#FCE9E5;border:1px solid #A8321F;color:#5C1A10}
+.preview-banner{background:#FDF4E2}
+.pick-list{border-color:#C9D1CE;background:#fff}
+.pick-list button{border-top-color:#E1E6E4}
+.pick-list button.on,.an-note.on{background:#DFF1EE}
+.zelle{background:#F4F0FF;border-color:#6b4fd8}
+.zelle .zl{color:#5435CC}
+.copyrow code{background:#EEF1F0}
+.scrim{background:rgba(6,8,7,.5)}
+.sheet{background:#fff;border-color:#C9D1CE;box-shadow:0 16px 48px rgba(0,0,0,.28)}
+.toast{background:#060807;color:#F0EBDD}
+.legend{color:#3C4843}
+svg text{fill:#46524D}
+.famlbl{color:#F0EBDD;font-size:14px}
+.famswitch{background:transparent!important;color:#A9B7B1!important;border-color:#2c3a36!important}
+.kids{gap:10px}
+header.top .seg button.on{background:#1C7570}
+.day.on .xtra{color:#F2C25B}
+.day.on.today .dn::after{color:#F0EBDD}
+.stage-msg{color:#C9D1CE}
+.sn{display:flex;flex-direction:column;gap:10px;border-top:2px solid var(--line);padding-top:12px}
+.snthumb{border:1px solid var(--line);border-radius:10px;padding:0;margin-top:6px;overflow:hidden;background:var(--panel-2);display:block;max-width:220px}
+.snthumb img{display:block;width:100%;height:auto;max-height:160px;object-fit:cover}
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand">
+      <img src="data:image/jpeg;base64,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" alt="Dynasty Performance Center logo">
+      <div>
+        <div class="name">DYNASTY</div>
+        <div class="sub">PERFORMANCE CENTER</div>
+      </div>
+      <div class="spacer"></div>
+      <a class="callpill" id="facilityCall" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg><span class="txt" id="facilityPhoneTxt"></span></a>
+    </div>
+    <div class="modebar">
+      <div class="seg" role="tablist" aria-label="Who is using the app">
+        <button data-act="mode" data-v="coach" id="m-coach">Coach</button>
+        <button data-act="mode" data-v="parent" id="m-parent">Parent</button>
+      </div>
+      <select class="pick" id="who" aria-label="Viewing as"></select>
+      <span class="famlbl" id="famLbl" hidden></span><button class="btn sm ghost famswitch" id="famSwitch" data-act="famSwitch" hidden>Switch family (demo)</button>
+      <span class="demo-tag">Demo · sample data</span>
+    </div>
+  </div>
+</header>
+
+<main class="wrap" id="app"></main>
+<nav class="tabs"><div class="wrap" id="tabs"></div></nav>
+<div id="modal"></div>
+<div id="toast" class="toast" hidden></div>
+
+<script>
+(function(){
+"use strict";
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const pad=n=>String(n).padStart(2,"0");
+const ymd=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const parse=s=>{const[y,m,d]=s.split("-").map(Number);return new Date(y,m-1,d)};
+const addDays=(d,n)=>{const x=new Date(d);x.setDate(x.getDate()+n);return x};
+const addMonths=(s,n)=>{const d=parse(s);d.setMonth(d.getMonth()+n);return ymd(d)};
+const DAYS=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+const MONTHS=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const HOURS=[15,16,17,18,19,20,21]; // regular hours: Mon–Fri, first session 3 PM, last 9 PM
+const ALL_HOURS=[6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21];
+const hlabel=h=>h<12?`${h} AM`:h===12?"12 PM":`${h-12} PM`;
+const hend=h=>hlabel(h+1);
+const dlabel=s=>{const d=parse(s);return `${DAYS[d.getDay()]} ${d.getMonth()+1}/${d.getDate()}`};
+const dlong=s=>{const d=parse(s);return `${DAYS[d.getDay()]}, ${MONTHS[d.getMonth()]} ${d.getDate()}`};
+const money=n=>n==null?"Price TBD":"$"+n.toLocaleString();
+const uid=()=>Math.random().toString(36).slice(2,9);
+const initials=a=>(a.first[0]+a.last[0]).toUpperCase();
+const fullname=a=>a?`${a.first} ${a.last}`:"—";
+const telHref=p=>"tel:"+String(p).replace(/[^0-9+]/g,"");
+function mondayOf(d){const x=new Date(d.getFullYear(),d.getMonth(),d.getDate());const day=x.getDay();x.setDate(x.getDate()+(day===0?-6:1-day));return x}
+function startOf(date,hour){const d=parse(date);d.setHours(hour,0,0,0);return d}
+function hoursUntil(date,hour){return (startOf(date,hour)-new Date())/36e5}
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const ICON={
+  phone:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></svg>',
+  cal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>',
+  users:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>',
+  cash:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/></svg>',
+  gear:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>',
+  user:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+  video:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="14" height="14" rx="2"/><path d="M22 8l-6 4 6 4z"/></svg>',
+  list:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>',
+  repeat:'<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>',
+  play:'<svg viewBox="0 0 24 24" width="22" height="22" fill="#060807"><path d="M8 5v14l11-7z"/></svg>',
+  chevL:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 18l-6-6 6-6"/></svg>',
+  chevR:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 18l6-6-6-6"/></svg>'
+};
+const TOOLS=[
+  {k:"avg",n:"Hitting for Average",c:"gil"},{k:"pow",n:"Hitting for Power",c:"gil"},
+  {k:"fld",n:"Fielding",c:"ozzy"},{k:"arm",n:"Throwing Arm",c:"johan"},
+  {k:"spd",n:"Speed",c:"johan"},{k:"mnt",n:"Mental Strength",c:"gilsr"}];
+const LEVELS=["Youth","Middle School","High School","College","Pro"];
+
+/* ---------- state ---------- */
+const KEY="dynasty-demo-v4";
+let S=null;
+let mem=null; // fallback when storage is blocked
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){mem=JSON.stringify(S)}}
+function load(){try{const r=localStorage.getItem(KEY);if(r)return JSON.parse(r)}catch(e){}if(mem)return JSON.parse(mem);return null}
+
+function seed(){
+  const R=rng(1227);
+  const pick=a=>a[Math.floor(R()*a.length)];
+  const coaches=[
+    {id:"gil",name:"Gil Gonzalez Jr.",short:"Gil Jr.",title:"Owner · Hitting",phone:"(305) 555-0101",color:"var(--c-gil)",main:true},
+    {id:"johan",name:"Johan",short:"Johan",title:"Pitching · Strength & Speed",phone:"(305) 555-0102",color:"var(--c-johan)"},
+    {id:"ozzy",name:"Ozzy",short:"Ozzy",title:"Fielding",phone:"(305) 555-0103",color:"var(--c-ozzy)"},
+    {id:"gilsr",name:"Gil Gonzalez Sr.",short:"Gil Sr.",title:"Mental Strength · Reaction & Vision",phone:"(305) 555-0104",color:"var(--c-gilsr)"}];
+  const services=[
+    {id:"hit",coachId:"gil",name:"Hitting with Gil",single:60,packSize:10,packPrice:500,expiryMonths:6,spots:2,online:true,sched:true},
+    {id:"video",coachId:"gil",name:"Video swing analysis",single:30,packSize:null,packPrice:null,expiryMonths:6,spots:null,online:true,sched:false},
+    {id:"pitch",coachId:"johan",name:"Pitching",minAge:12,single:null,packSize:null,packPrice:null,expiryMonths:6,spots:null,online:false,sched:true},
+    {id:"strength",coachId:"johan",name:"Strength & speed",single:null,packSize:null,packPrice:null,expiryMonths:6,spots:null,online:false,sched:true},
+    {id:"field",coachId:"ozzy",name:"Fielding",single:null,packSize:null,packPrice:null,expiryMonths:6,spots:null,online:false,sched:true},
+    {id:"mental",coachId:"gilsr",name:"Mental performance & vision",single:null,packSize:null,packPrice:null,expiryMonths:6,spots:null,online:false,sched:true}];
+  const people=[
+    ["Mateo","Rivera",10,"Youth","SS"],["Lucas","Fernandez",11,"Youth","C"],["Diego","Morales",12,"Middle School","CF"],
+    ["Adrian","Castillo",13,"Middle School","2B"],["Sebastian","Herrera",13,"Middle School","RHP/3B"],["Nico","Alvarez",14,"High School","SS"],
+    ["Gabriel","Suarez",14,"High School","OF"],["Ethan","Pérez",15,"High School","LHP/1B"],["Julian","Torres",15,"High School","C"],
+    ["Andres","Delgado",16,"High School","3B"],["Marcus","Bell",16,"High School","CF"],["Elijah","Ramos",16,"High School","RHP"],
+    ["Carlos","Mendez",17,"High School","SS"],["Isaiah","Brooks",17,"High School","OF"],["Javier","Ortega",17,"High School","1B"],
+    ["Daniel","Vega",18,"High School","2B"],["Tyler","Grant",18,"High School","RHP/OF"],["Alex","Navarro",19,"College","C"],
+    ["Ryan","Cabrera",20,"College","SS"],["Kevin","Lugo",20,"College","OF"],["Luis","Paredes",21,"College","RHP"],
+    ["Miguel","Santana",21,"College","3B"],["Chris","Ibarra",23,"Pro","2B"],["Jordan","Rojas",25,"Pro","OF"],["Emma","Castro",12,"Middle School","SS (softball)"],["Sofia","Rivera",13,"Middle School","2B (softball)"]];
+  const schools={"Youth":["Coral Gables Elementary","Pinecrest Elementary"],"Middle School":["Ponce de Leon MS","Palmer Trinity MS","Glades MS"],"High School":["Columbus HS","Belen Jesuit","Gulliver Prep","Coral Gables HS","Westminster Christian"],"College":["FIU","Miami Dade College","Barry University","St. Thomas University"],"Pro":["Independent league","Affiliated – Single A"]};
+  const parentFirst=["Maria","Carmen","Ana","Laura","Patricia","Yesenia","Roberto","Jorge","Alberto","Daniel","Michelle","Isabel"];
+  const notes=["Works best early in the evening. Loading the back hip is the focus.","Gets frustrated after misses; Gil Sr. working on reset routine.","Pull-heavy. Working on driving the ball the other way.","Showcase in December. Wants exit velo over 90.","Shy at first, very coachable. Mom usually waits in the lobby.","Coming back from a wrist sprain. Light tee work only until cleared.","Great bat speed, late on velocity. Pair with Nico for live BP.",""];
+  const athletes=people.map(([first,last,age,level,pos],i)=>{
+    const a={id:"a"+(i+1),first,last,age,level,pos,bats:pick(["R","L","R","R","S"]),throws:pick(["R","R","R","L"]),
+      phone:`(786) 555-${pad(10+i)}${pad(Math.floor(R()*90)+10)}`,email:`${first.toLowerCase()}.${last.toLowerCase().replace(/[^a-z]/g,"")}@example.com`,
+      school:pick(schools[level]),contacts:[],notes:notes[i%notes.length],alerts:R()>0.3,coachId:"gil",
+      tools:Object.fromEntries(TOOLS.map(t=>[t.k,Math.max(2,Math.min(9,Math.round(3+R()*4+(age>17?1.5:0))))]))};
+    if(age<19){const pf=pick(parentFirst);a.contacts.push({id:uid(),name:`${pf} ${last}`,rel:pf.match(/a$|el$|le$/)?"Mother":"Father",phone:`(305) 555-${pad(20+i)}${pad(Math.floor(R()*90)+10)}`,email:`${pf.toLowerCase()}.${last.toLowerCase().replace(/[^a-z]/g,"")}@example.com`});
+      if(R()>0.6)a.contacts.push({id:uid(),name:`${pick(parentFirst)} ${pick(["Lopez","Garcia","Diaz"])}`,rel:pick(["Grandmother","Stepfather","Aunt"]),phone:`(305) 555-${pad(40+i)}${pad(Math.floor(R()*90)+10)}`,email:""});}
+    return a;});
+  athletes[5].coachId="gil";athletes[11].coachId="johan";athletes[20].coachId="johan";athletes[16].coachId="johan";
+  athletes[24].contacts[0].name="Laura Castro";
+  athletes.forEach(a=>a.familyId=a.id);athletes[25].familyId="a1";athletes[25].contacts=athletes[0].contacts.map(c=>({...c,id:uid()}));athletes[25].alerts=true;
+  const today=new Date();
+  const wk=mondayOf(today);
+  const histStart=ymd(addDays(wk,-14));
+  // packs: most athletes have Gil's 10-pack
+  const packs=[];
+  athletes.forEach((a,i)=>{
+    if(i%5===3)return; // a few pay per session
+    const bought=ymd(addDays(wk,-14-Math.floor(R()*70)));
+    packs.push({id:"p"+i,athleteId:a.id,serviceId:"hit",total:10,usedBefore:Math.floor(R()*7),price:500,purchased:bought,expires:addMonths(bought,6),paid:i%7!==2,pending:i===9});
+  });
+  packs.push({id:"pold",athleteId:"a14",serviceId:"hit",total:10,usedBefore:9,price:500,purchased:ymd(addDays(wk,-178)),expires:addMonths(ymd(addDays(wk,-178)),6),paid:true});
+  // recurring weekly slots
+  const R1=[["a6",1,17],["a10",1,17],["a8",1,18],["a13",2,16],["a3",2,16],["a17",2,19],["a11",3,17],["a16",3,18],["a19",3,20],["a7",4,17],["a12",4,18],["a1",4,15],["a22",5,16],["a9",5,17],["a14",5,19],["a4",1,15],["a20",2,20],["a23",3,21]];
+  const recurring=R1.map(([aid,wd,h],i)=>({id:"r"+i,athleteId:aid,coachId:"gil",serviceId:"hit",weekday:wd,hour:h,start:histStart,end:null}));
+  recurring.push({id:"rj1",athleteId:"a12",coachId:"johan",serviceId:"pitch",weekday:1,hour:18,start:histStart,end:null});
+  recurring.push({id:"rj2",athleteId:"a21",coachId:"johan",serviceId:"strength",weekday:3,hour:16,start:histStart,end:null});
+  recurring.push({id:"ro1",athleteId:"a6",coachId:"ozzy",serviceId:"field",weekday:2,hour:17,start:histStart,end:null});
+  recurring.push({id:"ro2",athleteId:"a13",coachId:"ozzy",serviceId:"field",weekday:4,hour:16,start:histStart,end:null});
+  recurring.push({id:"rs1",athleteId:"a10",coachId:"gilsr",serviceId:"mental",weekday:2,hour:18,start:histStart,end:null});
+  recurring.push({id:"rs2",athleteId:"a18",coachId:"gilsr",serviceId:"mental",weekday:5,hour:17,start:histStart,end:null});
+  S={v:4,extra:[],facility:{name:"Dynasty Performance Center",phone:"(305) 555-0140",zelle:"(305) 555-0140",zelleName:"Dynasty Performance Center"},
+    coaches,services,athletes,packs,recurring,bookings:[],gen:{},blocks:[],broadcasts:[],videos:[],
+    log:[]};
+  // one-off bookings this week + next
+  const oneOffs=[["a2",0,19],["a24",1,21],["a15",2,15],["a5",3,15],["a25",4,20],["a18",7,18],["a21",8,21],["a2",9,19]];
+  oneOffs.forEach(([aid,off,h])=>S.bookings.push(mkBooking(aid,"gil","hit",ymd(addDays(wk,off)),h,null)));
+  S.bookings.push(mkBooking("a5","johan","pitch",ymd(addDays(wk,2)),17,null));
+  S.bookings.push(mkBooking("a25","ozzy","field",ymd(addDays(wk,3)),18,null));
+  S.bookings.push(mkBooking("a8","gilsr","mental",ymd(addDays(wk,1)),19,null));
+  S.blocks.push({id:uid(),coachId:"gil",date:ymd(addDays(wk,4)),hour:21});
+  S.blocks.push({id:uid(),coachId:"gil",date:ymd(addDays(wk,4)),hour:21});
+  S.blocks.push({id:uid(),coachId:"ozzy",date:ymd(addDays(wk,1)),hour:20});
+  // extra hours: a Saturday clinic this week, and a no-school day next week
+  [9,10,11].forEach(h=>S.extra.push({id:uid(),coachId:"gil",date:ymd(addDays(wk,5)),hour:h,note:"Saturday clinic · ages 10–14",minAge:10,maxAge:14,levels:[]}));
+  [11,12,13,14].forEach(h=>{S.extra.push({id:uid(),coachId:"gil",date:ymd(addDays(wk,9)),hour:h,note:"No school · teacher planning day"});S.extra.push({id:uid(),coachId:"ozzy",date:ymd(addDays(wk,9)),hour:h,note:"No school · teacher planning day"})});
+  S.bookings.push(mkBooking("a7","gil","hit",ymd(addDays(wk,5)),9,null));
+  S.bookings.push(mkBooking("a3","gil","hit",ymd(addDays(wk,5)),10,null));
+  S.bookings.push(mkBooking("a1","gil","hit",ymd(addDays(wk,9)),11,null));
+  S.bookings.push(mkBooking("a2","ozzy","field",ymd(addDays(wk,9)),12,null));
+  for(let w=-2;w<=3;w++)ensureWeek(ymd(addDays(wk,w*7)));
+  // past sessions get completed in order; give one athlete a late-cancel history
+  const now=new Date();
+  const lateIds=new Set();
+  const a14=S.bookings.filter(b=>b.athleteId==="a14"&&startOf(b.date,b.hour)<now).sort(byTime);
+  S.bookings.sort(byTime).forEach(b=>{if(startOf(b.date,b.hour)<now&&b.status==="booked")setStatus(b,"completed",true)});
+  // late-cancel history for Carlos Mendez (a13)
+  const extra=[[-13,16,"late"],[-6,16,"late"],[-20,16,"forgiven"]];
+  extra.forEach(([off,h,st])=>{const d=ymd(addDays(wk,off));let b=S.bookings.find(x=>x.athleteId==="a13"&&x.date===d&&x.hour===h);
+    if(b)setStatus(b,"booked",true);else{b=mkBooking("a13","gil","hit",d,h,null);S.bookings.push(b)}
+    setStatus(b,"late",true);if(st==="forgiven")setStatus(b,"forgiven",true)});
+  // a couple of unpaid singles
+  // video request
+  S.videos.push({id:"v1",athleteId:"a10",coachId:"gil",date:ymd(addDays(wk,-3)),title:"Front toss · side angle",ask:"Feels like I'm late on everything inside.",status:"ready",paid:true,pending:false,tool:"avg",blobKey:null,notes:[
+    {id:"n1",t:0,by:"gil",text:"Hands are drifting forward at foot strike. Keep them back by the rear shoulder and let the hips start it.",shapes:[{type:"arrow",color:"#F5D547",pts:[[.52,.30],[.41,.39]]},{type:"circle",color:"#E06B5B",pts:[[.43,.37],[.47,.37]]}],at:ymd(addDays(wk,-2))},
+    {id:"n2",t:0,by:"athlete",text:"Got it. Should I do the wall drill before every session?",shapes:[],at:ymd(addDays(wk,-2))},
+    {id:"n3",t:0,by:"gil",text:"Yes, 3 sets of 10. Back knee angle is good here, keep it.",shapes:[{type:"angle",color:"#4FC1B9",pts:[[.49,.55],[.57,.70],[.60,.86]]}],at:ymd(addDays(wk,-1))}]});
+  S.videos.push({id:"v2",athleteId:"a7",coachId:"gil",date:ymd(addDays(new Date(),-1)),title:"Game at-bat · behind the plate",ask:"Rolling over on inside pitches.",status:"waiting",paid:false,pending:true,tool:"",blobKey:null,notes:[]});
+  S.videos.push({id:"v3",athleteId:"a12",coachId:"johan",date:ymd(addDays(new Date(),-2)),title:"Bullpen · fastball side view",ask:"",status:"review",paid:true,pending:false,tool:"arm",blobKey:null,notes:[{id:"n4",t:0,by:"johan",text:"Arm slot drops at release. Stay tall through the finish.",shapes:[{type:"line",color:"#F5D547",pts:[[.40,.30],[.60,.30]]}],at:ymd(new Date())}]});
+  {const done=S.bookings.filter(b=>b.athleteId==="a1"&&b.status==="completed").sort(byTime).pop();if(done)done.notes=[{id:"sn1",by:"coach",coachId:done.coachId,text:"Good session. Front toss, 3 rounds. Keep the back elbow up at load.",private:false,img:null,at:done.date},{id:"sn2",by:"athlete",coachId:done.coachId,text:"Felt better on the outside pitch. Can we do live BP next time?",private:false,img:null,at:done.date},{id:"sn3",by:"coach",coachId:done.coachId,text:"Tired today, was up late for a school project. Go lighter next week.",private:true,img:null,at:done.date}]}
+  S.log.push({at:new Date().toISOString(),text:"Demo data loaded"});
+  return S;
+}
+function byTime(a,b){return a.date===b.date?a.hour-b.hour:(a.date<b.date?-1:1)}
+function mkBooking(athleteId,coachId,serviceId,date,hour,recurringId){
+  return {id:"b"+uid(),athleteId,coachId,serviceId,date,hour,status:"booked",recurringId,packId:null,single:false,paid:false,pending:false};
+}
+/* recurring rules turn into bookings week by week, once */
+function ensureWeek(weekStartYmd){
+  const ws=parse(weekStartYmd);
+  S.recurring.forEach(r=>{
+    const date=ymd(addDays(ws,(r.weekday+6)%7));
+    if(date<r.start)return;
+    if(r.end&&date>=r.end)return;
+    const key=r.id+"|"+date;
+    if(S.gen[key])return;
+    S.gen[key]=1;
+    S.bookings.push(mkBooking(r.athleteId,r.coachId,r.serviceId,date,r.hour,r.id));
+  });
+}
+const svc=id=>S.services.find(s=>s.id===id);
+const coach=id=>S.coaches.find(c=>c.id===id);
+const ath=id=>S.athletes.find(a=>a.id===id);
+/* packs */
+function packUsed(p){return p.usedBefore+S.bookings.filter(b=>b.packId===p.id&&(b.status==="completed"||b.status==="late")).length}
+function packLeft(p){return Math.max(0,p.total-packUsed(p))}
+function activePack(athleteId,serviceId,onDate){
+  return S.packs.filter(p=>p.athleteId===athleteId&&p.serviceId===serviceId&&p.purchased<=onDate&&p.expires>=onDate&&packLeft(p)>0)
+    .sort((a,b)=>a.expires<b.expires?-1:1)[0]||null;
+}
+function currentPack(athleteId,serviceId){
+  const t=ymd(new Date());
+  return activePack(athleteId,serviceId,t)||S.packs.filter(p=>p.athleteId===athleteId&&p.serviceId===serviceId).sort((a,b)=>a.purchased<b.purchased?1:-1)[0]||null;
+}
+function scheduledCount(athleteId,serviceId){return S.bookings.filter(b=>b.athleteId===athleteId&&b.serviceId===serviceId&&b.status==="booked"&&startOf(b.date,b.hour)>new Date()).length}
+/* status changes: completed and late both use a session; forgiven gives it back */
+function setStatus(b,st,quiet){
+  const used=st==="completed"||st==="late";
+  if(used&&!b.packId&&!b.single){
+    const p=activePack(b.athleteId,b.serviceId,b.date);
+    if(p)b.packId=p.id;else if(svc(b.serviceId).single!=null){b.single=true;b.paid=false}
+  }
+  if(st==="forgiven"||st==="cancelled"||st==="booked"){b.packId=null;b.single=false;b.paid=false;b.pending=false}
+  b.status=st;
+  if(!quiet)save();
+}
+function lateCounts(aid){const bs=S.bookings.filter(b=>b.athleteId===aid);return{late:bs.filter(b=>b.status==="late"||b.status==="forgiven").length,forgiven:bs.filter(b=>b.status==="forgiven").length}}
+/* capacity */
+function hourBookings(coachId,date,hour){return S.bookings.filter(b=>b.coachId===coachId&&b.date===date&&b.hour===hour&&b.status!=="cancelled")}
+const holdsSpot=b=>b.status==="booked"||b.status==="completed";
+function hourBlocks(coachId,date,hour){return S.blocks.filter(x=>x.coachId===coachId&&x.date===date&&x.hour===hour)}
+function capService(coachId){return S.services.find(s=>s.coachId===coachId&&s.sched&&s.spots)}
+function openSpots(serviceId,date,hour){
+  const s=svc(serviceId);if(!isOpenHour(s.coachId,date,hour))return 0;if(!s.spots)return Infinity;
+  const used=S.bookings.filter(b=>b.serviceId===serviceId&&b.date===date&&b.hour===hour&&holdsSpot(b)).length;
+  return Math.max(0,s.spots-used-hourBlocks(s.coachId,date,hour).length);
+}
+function owed(aid){
+  const singles=S.bookings.filter(b=>b.athleteId===aid&&b.single&&!b.paid&&svc(b.serviceId).single!=null).map(b=>({kind:"single",ref:b,amount:svc(b.serviceId).single,label:`${svc(b.serviceId).name} · ${dlabel(b.date)} ${hlabel(b.hour)}${b.status==="late"?" (late cancel)":""}`,pending:b.pending}));
+  const packs=S.packs.filter(p=>p.athleteId===aid&&!p.paid).map(p=>({kind:"pack",ref:p,amount:p.price,label:`${svc(p.serviceId).name} · ${p.total}-session pack`,pending:p.pending}));
+  const vids=S.videos.filter(v=>v.athleteId===aid&&!v.paid).map(v=>({kind:"video",ref:v,amount:svc("video").single,label:`Video swing analysis · ${v.title}`,pending:v.pending}));
+  return [...singles,...packs,...vids].filter(o=>o.amount!=null);
+}
+
+/* ---------- ui state ---------- */
+const U={mode:"coach",coachView:"all",family:"a1",showFam:false,tab:"schedule",day:null,week:null,athleteId:null,profTab:"overview",q:"",levels:[],ageMin:"",ageMax:"",alertsOnly:false};
+/* open on today, or the next day that still has an hour ahead */
+function initDates(){const t=new Date();let d=new Date(t.getFullYear(),t.getMonth(),t.getDate());
+  for(let i=0;i<14;i++){const ds=ymd(d);if(hoursFor(ds,S.coaches.map(c=>c.id)).some(h=>startOf(ds,h)>t))break;d=addDays(d,1)}
+  U.week=ymd(mondayOf(d));U.day=ymd(d)}
+
+/* ---------- render ---------- */
+function render(){
+  if(AN.cleanup){AN.cleanup();AN.cleanup=null}
+  ensureWeek(U.week);ensureWeek(ymd(addDays(parse(U.week),7)));
+  $("#m-coach").classList.toggle("on",U.mode==="coach");
+  $("#m-parent").classList.toggle("on",U.mode==="parent");
+  const who=$("#who");
+  if(U.mode==="coach"){
+    who.innerHTML=`<option value="all">Facility · all coaches</option>`+S.coaches.map(c=>`<option value="${c.id}">${esc(c.name)}${c.main?" (main)":""}</option>`).join("");
+    who.value=U.coachView;
+  }else{
+    const fams=[...new Set(S.athletes.map(a=>famId(a)))].map(f=>famMembers(f)).sort((x,y)=>x[0].last.localeCompare(y[0].last));
+    who.innerHTML=fams.map(m=>`<option value="${famId(m[0])}">${esc(m[0].last)} family · ${m.map(a=>esc(a.first)).join(", ")}</option>`).join("");
+    who.value=famId(famAth());
+  }
+  const parent=U.mode==="parent";$("#famLbl").hidden=!parent;$("#famSwitch").hidden=!parent;who.hidden=parent&&!U.showFam;
+  if(parent){$("#famLbl").innerHTML=`Signed in as <b>${esc(famAth().last)} family</b>`;$("#famSwitch").textContent=U.showFam?"Done":"Switch family (demo)"}
+  const fp=S.facility.phone;$("#facilityPhoneTxt").textContent=fp;$("#facilityCall").href=telHref(fp);$("#facilityCall").setAttribute("aria-label","Call the facility "+fp);
+  const tabs=U.mode==="coach"?[["schedule","Schedule",ICON.cal],["athletes","Athletes",ICON.users],["videos","Videos",ICON.video],["payments","Payments",ICON.cash],["settings","Settings",ICON.gear]]
+    :[["book","Book",ICON.cal],["mine","Sessions",ICON.list],["video","Video",ICON.video],["pay","Pay",ICON.cash],["profile","Profile",ICON.user]];
+  if(!tabs.some(t=>t[0]===U.tab))U.tab=tabs[0][0];
+  $("#tabs").innerHTML=tabs.map(([k,l,i])=>`<button data-act="tab" data-v="${k}" class="${U.tab===k?"on":""}" aria-label="${l}">${i}<span>${l}</span></button>`).join("");
+  const app=$("#app");
+  const V={videos:vVideos,video:vParentVideo,schedule:vSchedule,athletes:vAthletes,profile:U.mode==="coach"?vProfile:vParentProfile,payments:vPayments,settings:vSettings,book:vBook,mine:vMine,pay:vPay};
+  app.innerHTML=(U.mode==="coach"&&U.tab==="athletes"&&U.athleteId?vProfile():V[U.tab]());
+  if(U.mode==="parent"&&!U.videoId){const m=famMembers(famId(famAth()));if(m.length>1)app.insertAdjacentHTML("afterbegin",`<div class="row kids"><span class="label">Your athletes</span><div class="seg">${m.map(a=>`<button class="${a.id===U.family?"on":""}" data-act="kid" data-v="${a.id}">${esc(a.first)}</button>`).join("")}</div></div>`)}
+  applyLayoutMode();
+}
+
+/* --- coach: schedule --- */
+function vSchedule(){
+  const ws=parse(U.week);
+  const days=[0,1,2,3,4,5,6].map(i=>ymd(addDays(ws,i)));
+  if(!days.includes(U.day))U.day=days[0];
+  const today=ymd(new Date());
+  const coachIds=U.coachView==="all"?S.coaches.map(c=>c.id):[U.coachView];
+  const hitOpen=d=>svc("hit").spots?ALL_HOURS.reduce((n,h)=>n+(startOf(d,h)>new Date()?openSpots("hit",d,h):0),0):null;
+  const strip=`<div class="weekstrip">
+    <button class="nav" data-act="week" data-v="-1" aria-label="Previous week">${ICON.chevL}</button>
+    ${days.map(d=>{const dd=parse(d);const hrs=hoursFor(d,coachIds);return `<button class="day ${d===U.day?"on":""} ${d===today?"today":""} ${hrs.length?"":"closed"}" data-act="day" data-v="${d}">
+      <div class="dn">${DAYS[dd.getDay()]}</div><div class="dd num">${dd.getMonth()+1}/${dd.getDate()}</div>
+      ${!hrs.length?`<div class="dd">closed</div>`:coachIds.includes("gil")&&hitOpen(d)!=null?`<div class="open num">${hitOpen(d)}<span class="ol"> open</span></div>`:""}${(isWeekday(d)?hrs.some(h=>!HOURS.includes(h)):hrs.length)?`<div class="xtra">+EXTRA</div>`:""}</button>`}).join("")}
+    <button class="nav" data-act="week" data-v="1" aria-label="Next week">${ICON.chevR}</button></div>`;
+  const title=U.coachView==="all"?"Facility schedule":`${coach(U.coachView).name} · schedule`;
+  const dayHours=hoursFor(U.day,coachIds);
+  const rows=dayHours.length?dayHours.map(h=>hourRow(U.day,h,coachIds)).join(""):`<div class="empty">No hours open ${dlong(U.day)}. Use “Open extra hours” for a weekend clinic or a no-school day.</div>`;
+  const notes=[...new Set((S.extra||[]).filter(x=>x.date===U.day&&x.note&&coachIds.includes(x.coachId)).map(x=>x.note))];
+  const span=dayHours.length?`${hlabel(dayHours[0])} to ${hend(dayHours[dayHours.length-1])}`:"Closed";
+  const legend=U.coachView==="all"?`<div class="legend">${S.coaches.map(c=>`<span><i class="dot" style="background:${c.color}"></i> ${esc(c.short)}</span>`).join("")}<span>${ICON.repeat} weekly</span></div>`:`<div class="legend"><span>${ICON.repeat} weekly recurring</span><span>Open spots are dashed</span></div>`;
+  return `<div class="row between"><div><h2>${esc(title)}</h2><div class="muted small">${dlong(U.day)} · ${span} · Regular hours Mon–Fri 3 PM to 10 PM</div>${notes.length?`<div class="small" style="color:var(--warn)">Extra hours: ${esc(notes.join(" · "))}</div>`:""}</div>
+    <div class="row"><button class="btn" data-act="extraHours">+ Open extra hours</button><button class="btn primary" data-act="newBooking">+ Book a session</button></div></div>
+    ${strip}${legend}<div class="card" style="padding-block:4px">${rows}</div>`;
+}
+function hourRow(date,h,coachIds){
+  const past=startOf(date,h)<new Date();
+  let cells="";let actions="";
+  let extraFor=[];
+  coachIds.forEach(cid=>{
+    const c=coach(cid);const cap=capService(cid);
+    const isOpen=isOpenHour(cid,date,h);
+    if(isExtra(cid,date,h))extraFor.push(c.short);
+    const bs=hourBookings(cid,date,h).filter(b=>b.status!=="forgiven"||coachIds.length===1);
+    bs.forEach(b=>cells+=spotCard(b,c));
+    if(!isOpen)return;
+    if(cap){
+      const blocks=hourBlocks(cid,date,h);
+      blocks.forEach(x=>cells+=`<button class="spot off" style="border-left-color:${c.color}" data-act="unblock" data-v="${x.id}"><span class="who">Unavailable</span><span class="meta">${esc(c.short)} · tap to reopen</span></button>`);
+      const open=openSpots(cap.id,date,h);
+      for(let i=0;i<open;i++){
+        if(past){cells+=`<button class="spot off" style="border-left-color:${c.color}" data-act="pastSpot"><span class="who">Open (passed)</span><span class="meta">${esc(cap.name)}</span></button>`;continue}
+        cells+=`<button class="spot open" style="border-left-color:${c.color}" data-act="bookSpot" data-c="${cid}" data-s="${cap.id}" data-d="${date}" data-h="${h}"><span class="who">Open spot</span><span class="meta">${esc(cap.name)} · tap to book${(L=>L?` <span class="chip teal">${L}</span>`:"")(limLabel(limFor(cap.id,date,h)))}</span></button>`;
+      }
+      if(!past&&open>0&&coachIds.length===1){actions+=`<button class="btn sm" data-act="broadcast" data-s="${cap.id}" data-d="${date}" data-h="${h}">Broadcast ${open} open</button><button class="btn sm ghost" data-act="block" data-c="${cid}" data-d="${date}" data-h="${h}">Mark 1 unavailable</button>`}
+    }else if(coachIds.length===1){
+      const blocks=hourBlocks(cid,date,h);
+      if(blocks.length){cells+=`<button class="spot off" style="border-left-color:${c.color}" data-act="unblock" data-v="${blocks[0].id}"><span class="who">Unavailable</span><span class="meta">Tap to reopen</span></button>`}
+      else if(!past){cells+=`<button class="spot add" data-act="bookSpot" data-c="${cid}" data-d="${date}" data-h="${h}">+ Add appointment</button>`;
+        actions+=`<button class="btn sm ghost" data-act="block" data-c="${cid}" data-d="${date}" data-h="${h}">Mark unavailable</button>`}
+    }
+  });
+  if(coachIds.length>1){
+    const open=past||!svc("hit").spots?0:openSpots("hit",date,h);
+    if(open>0)actions+=`<button class="btn sm" data-act="broadcast" data-s="hit" data-d="${date}" data-h="${h}">Broadcast ${open} open</button>`;
+    if(!cells)cells=`<div class="muted small" style="padding:8px 0">Nothing booked</div>`;
+  }
+  if(extraFor.length&&!past&&coachIds.length===1&&!hourBookings(coachIds[0],date,h).some(holdsSpot))actions+=`<button class="btn sm ghost" data-act="closeExtra" data-c="${coachIds[0]}" data-d="${date}" data-h="${h}">Close this extra hour</button>`;
+  return `<div class="hour ${past?"past":""}"><div class="t num">${hlabel(h).split(" ")[0]}<span>${hlabel(h).split(" ")[1]}</span>${extraFor.length?`<span class="xtra">EXTRA${coachIds.length>1?" · "+esc(extraFor.join(", ")):""}</span>`:""}</div>
+    <div><div class="spots">${cells}</div>${actions?`<div class="hour-actions">${actions}</div>`:""}</div></div>`;
+}
+function spotCard(b,c){
+  const a=ath(b.athleteId);const s=svc(b.serviceId);
+  const p=s.packSize?currentPack(a.id,s.id):null;
+  let tag="";
+  if(b.status==="completed")tag=`<span class="chip good">Done</span>`;
+  else if(b.status==="late")tag=`<span class="chip bad">Late cancel · counted</span>`;
+  else if(b.status==="forgiven")tag=`<span class="chip">Late cancel · forgiven</span>`;
+  else if(p&&s.packSize){const l=packLeft(p);tag=`<span class="chip ${l<=2?"warn":"teal"} num">${l} left</span>`}
+  else if(s.single!=null)tag=`<span class="chip warn">Pays ${money(s.single)}</span>`;
+  const cls=b.status==="completed"?"done":(b.status==="late"||b.status==="forgiven")?"cancel":"";
+  return `<button class="spot ${cls}" style="border-left-color:${c.color}" data-act="openBooking" data-v="${b.id}">
+    <span class="who">${esc(fullname(a))}</span>
+    <span class="meta">${b.recurringId?ICON.repeat:""}<span>${esc(s.name)}</span>${tag}</span></button>`;
+}
+
+/* --- booking sheets --- */
+/* iPhone viewer stretches the page to its full height, so "fixed" pop-ups would land off-screen. Place them where the tap happened. */
+let lastTapY=null;
+document.addEventListener("pointerdown",e=>{lastTapY=e.pageY},true);
+function contentHeight(){const els=[$("header.top"),$("#app"),$("nav.tabs")].filter(Boolean);return Math.ceil(Math.max(...els.map(e=>e.getBoundingClientRect().bottom+scrollY)))}
+function stretched(){if($("#modal .sheet"))return document.documentElement.classList.contains("nofixed");const h=contentHeight();return innerHeight>=h-4&&h>(screen.height||800)*1.15}
+function applyLayoutMode(){const on=stretched();document.documentElement.classList.toggle("nofixed",on);const nav=$("nav.tabs"),hdr=$("header.top");if(on&&nav.previousElementSibling!==hdr)hdr.after(nav);if(!on&&nav.previousElementSibling===hdr)$("#app").after(nav)}
+let anchorY=null;
+addEventListener("resize",()=>applyLayoutMode());
+function modal(html){applyLayoutMode();if(!$("#modal .sheet"))anchorY=lastTapY;$("#modal").innerHTML=`<div class="scrim" data-act="closeScrim"><div class="sheet" role="dialog" aria-modal="true">${html}</div></div>`;
+  if(document.documentElement.classList.contains("nofixed")){const sc=$("#modal .scrim"),sh=$("#modal .sheet");sc.style.height=document.documentElement.scrollHeight+"px";const top=Math.max(8,(anchorY??lastTapY??0)-140);sh.style.marginTop=top+"px";const need=top+sh.offsetHeight+16;if(need>parseFloat(sc.style.height))sc.style.height=need+"px"}const f=$("#modal input,#modal select,#modal button.btn");if(f)f.focus()}
+function closeModal(){$("#modal").innerHTML="";anchorY=null}
+function sheetHead(t,sub){return `<div class="row"><div class="grow"><h3>${esc(t)}</h3>${sub?`<div class="muted small">${sub}</div>`:""}</div><button class="x" data-act="close" aria-label="Close">×</button></div>`}
+let pickState={};
+function bookSheet(opts){
+  pickState={newA:null,coachId:opts.coachId||(U.coachView==="all"?"gil":U.coachView),serviceId:opts.serviceId||null,date:opts.date||U.day,hour:opts.hour||null,athleteId:null,repeat:false,q:""};
+  drawBookSheet();
+}
+function drawBookSheet(){
+  const ps=pickState;
+  const services=S.services.filter(s=>s.coachId===ps.coachId&&s.sched);
+  if(!ps.serviceId||!services.some(s=>s.id===ps.serviceId))ps.serviceId=services[0]?.id;
+  const s=svc(ps.serviceId);
+  const q=ps.q.toLowerCase();
+  const list=S.athletes.filter(a=>!q||fullname(a).toLowerCase().includes(q)||a.level.toLowerCase().includes(q)).sort((a,b)=>a.last.localeCompare(b.last));
+  const openHrs=hoursFor(ps.date,[ps.coachId]);if(ps.hour&&!openHrs.includes(+ps.hour))ps.hour=null;
+  const hourOpts=openHrs.map(h=>`<option value="${h}" ${ps.hour==h?"selected":""}>${hlabel(h)} – ${hend(h)}${HOURS.includes(h)&&isWeekday(ps.date)?"":" (extra)"}</option>`).join("");
+  let capNote="";
+  if(ps.hour&&s.spots){const o=openSpots(s.id,ps.date,+ps.hour);capNote=o>0?`<div class="notice info num">${o} of ${s.spots} spots open at ${hlabel(+ps.hour)}.</div>`:`<div class="notice bad">That hour is full. Pick another time.</div>`}
+  let payNote="";
+  if(ps.athleteId){const p=s.packSize?activePack(ps.athleteId,s.id,ps.date):null;
+    payNote=p?`<div class="notice info num">Uses ${esc(fullname(ath(ps.athleteId)))}'s pack · ${packLeft(p)} left (expires ${dlabel(p.expires)}).</div>`
+      :s.single==null?`<div class="notice info">No price set for this session yet. Nothing will be charged.</div>`:`<div class="notice warn">No active pack. This session is billed as a single (${money(s.single)}).</div>`}
+  let ageNote="";if(ps.athleteId&&ps.hour){const L=limFor(s.id,ps.date,+ps.hour),a=ath(ps.athleteId);if(!fits(a,L))ageNote=`<div class="notice warn">${esc(a.first)} is ${a.age} (${a.level}). This session is for ${limLabel(L)}. You can still book.</div>`}
+  const full=ps.hour&&s.spots&&openSpots(s.id,ps.date,+ps.hour)<=0;
+  modal(`${sheetHead("Book a session")}
+    <div class="fields">
+      <div class="field"><label for="bk-coach">Coach</label><select id="bk-coach" data-ch="bkCoach">${S.coaches.map(c=>`<option value="${c.id}" ${c.id===ps.coachId?"selected":""}>${esc(c.name)}</option>`).join("")}</select></div>
+      <div class="field"><label for="bk-svc">Session</label><select id="bk-svc" data-ch="bkSvc">${services.map(x=>`<option value="${x.id}" ${x.id===ps.serviceId?"selected":""}>${esc(x.name)} · ${money(x.single)}</option>`).join("")}</select></div>
+      <div class="field"><label for="bk-date">Date</label><input type="date" id="bk-date" value="${ps.date}" data-ch="bkDate"></div>
+      <div class="field"><label for="bk-hour">Time</label><select id="bk-hour" data-ch="bkHour"><option value="">Choose…</option>${hourOpts}</select></div>
+    </div>
+    ${capNote}
+    <div class="field"><label for="bk-q">Athlete</label><input id="bk-q" type="search" placeholder="Search name or level" value="${esc(ps.q)}" data-in="bkQ"></div>
+    ${quickAdd(ps,list)}<div class="pick-list" ${ps.newA?"hidden":""}>${list.map(a=>`<button class="${a.id===ps.athleteId?"on":""}" data-act="bkPick" data-v="${a.id}"><span class="avatar" style="width:30px;height:30px;font-size:12px">${initials(a)}</span><span class="grow">${esc(fullname(a))}<br><span class="muted small">${a.age} · ${a.level}</span></span></button>`).join("")}</div>
+    ${ps.athleteId&&!list.some(a=>a.id===ps.athleteId)?`<div class="small">Selected: <b>${esc(fullname(ath(ps.athleteId)))}</b></div>`:""}
+    ${payNote}${ageNote}
+    ${ps.hour&&isWeekday(ps.date)&&HOURS.includes(+ps.hour)?`<label class="row small"><input type="checkbox" id="bk-rep" ${ps.repeat?"checked":""} data-ch="bkRep"> Repeat every ${DAYS[parse(ps.date).getDay()]} at this time (recurring)</label>`:""}
+    <div class="row"><button class="btn primary" data-act="bkSave" ${!ps.athleteId||!ps.hour||full?"disabled":""}>Book it</button><button class="btn ghost" data-act="close">Cancel</button>
+    ${!openHrs.length?`<span class="small" style="color:var(--warn)">${esc(coach(ps.coachId).short)} has no hours open this day. Open extra hours first.</span>`:""}</div>`);
+}
+function quickAdd(ps,list){
+  if(ps.newA){const n=ps.newA;return `<div class="card" style="background:var(--panel-2);display:flex;flex-direction:column;gap:10px"><div class="label">New athlete</div>
+    <div class="fields"><div class="field"><label for="qa-first">First name</label><input id="qa-first" value="${esc(n.first)}"></div>
+    <div class="field"><label for="qa-last">Last name</label><input id="qa-last" value="${esc(n.last)}"></div>
+    <div class="field"><label for="qa-age">Age</label><input id="qa-age" type="number" min="5" max="45" value="${esc(n.age)}"></div>
+    <div class="field"><label for="qa-level">Skill level</label><select id="qa-level">${LEVELS.map(l=>`<option ${l===(n.level||"High School")?"selected":""}>${l}</option>`).join("")}</select></div>
+    <div class="field"><label for="qa-phone">Phone</label><input id="qa-phone" type="tel" value="${esc(n.phone)}"></div>
+    <div class="field"><label for="qa-pp">Parent phone (optional)</label><input id="qa-pp" type="tel" value="${esc(n.pphone)}"></div></div>
+    <div id="qa-err" class="small" style="color:var(--bad)" hidden>First name, last name and age are needed.</div>
+    <div class="row"><button class="btn primary sm" data-act="qaSave">Add and select</button><button class="btn ghost sm" data-act="qaCancel">Back to list</button></div></div>`}
+  const q=ps.q.trim();
+  return `<button class="btn sm" data-act="qaOpen" style="align-self:flex-start">+ ${q&&!list.length?`Add “${esc(q)}” as a new athlete`:"New athlete (not in the list)"}</button>`;
+}
+/* who a session is for: an extra-hours block's limits win over the session type's */
+function limFor(serviceId,date,hour){const s=svc(serviceId);const ex=(S.extra||[]).find(x=>x.coachId===s.coachId&&x.date===date&&x.hour===hour&&(x.minAge!=null||x.maxAge!=null||(x.levels&&x.levels.length)));const src=ex||s;return{minAge:src.minAge??null,maxAge:src.maxAge??null,levels:src.levels||[]}}
+function fits(a,l){return(l.minAge==null||a.age>=l.minAge)&&(l.maxAge==null||a.age<=l.maxAge)&&(!l.levels.length||l.levels.includes(a.level))}
+const LV_SHORT={"Youth":"Youth","Middle School":"MS","High School":"HS","College":"College","Pro":"Pro"};
+function limLabel(l){const p=[];if(l.minAge!=null&&l.maxAge!=null)p.push(`Ages ${l.minAge}–${l.maxAge}`);else if(l.minAge!=null)p.push(`Ages ${l.minAge}+`);else if(l.maxAge!=null)p.push(`Up to age ${l.maxAge}`);if(l.levels.length)p.push(l.levels.map(x=>LV_SHORT[x]).join("/"));return p.join(" · ")}
+const isWeekday=d=>{const x=parse(d).getDay();return x>=1&&x<=5};
+/* a coach's hour is open if it's a regular hour or the coach opened it as an extra hour */
+function isExtra(coachId,date,hour){return (S.extra||[]).some(x=>x.coachId===coachId&&x.date===date&&x.hour===hour)}
+function isOpenHour(coachId,date,hour){return (isWeekday(date)&&HOURS.includes(hour))||isExtra(coachId,date,hour)}
+function hoursFor(date,coachIds){return ALL_HOURS.filter(h=>coachIds.some(c=>isOpenHour(c,date,h)))}
+function bkSave(){
+  const ps=pickState;const h=+ps.hour;
+  if(ps.repeat&&isWeekday(ps.date)&&HOURS.includes(h)){
+    const r={id:"r"+uid(),athleteId:ps.athleteId,coachId:ps.coachId,serviceId:ps.serviceId,weekday:parse(ps.date).getDay(),hour:h,start:ps.date,end:null};
+    S.recurring.push(r);
+    // fill this week through 4 weeks out, skipping weeks where the hour is full
+    let skipped=0;
+    for(let w=0;w<5;w++){const d=ymd(addDays(parse(ps.date),w*7));r.start=ps.date;const key=r.id+"|"+d;S.gen[key]=1;
+      if(svc(ps.serviceId).spots&&openSpots(ps.serviceId,d,h)<=0){skipped++;continue}
+      S.bookings.push(mkBooking(ps.athleteId,ps.coachId,ps.serviceId,d,h,r.id))}
+    save();closeModal();render();toast(`Booked ${fullname(ath(ps.athleteId))} every ${DAYS[parse(ps.date).getDay()]} at ${hlabel(h)}${skipped?` · ${skipped} full week(s) skipped`:""}`);
+  }else{
+    S.bookings.push(mkBooking(ps.athleteId,ps.coachId,ps.serviceId,ps.date,h,null));
+    save();closeModal();render();toast(`Booked ${fullname(ath(ps.athleteId))} · ${dlabel(ps.date)} ${hlabel(h)}`);
+  }
+}
+function bookingSheet(id,asParent){
+  const b=S.bookings.find(x=>x.id===id);const a=ath(b.athleteId);const s=svc(b.serviceId);const c=coach(b.coachId);
+  const hrs=hoursUntil(b.date,b.hour);
+  const p=s.packSize?currentPack(a.id,s.id):null;
+  const lc=lateCounts(a.id);
+  let body=`<dl class="kv"><dt>When</dt><dd>${dlong(b.date)} · ${hlabel(b.hour)}–${hend(b.hour)}</dd><dt>Coach</dt><dd>${esc(c.name)}</dd>
+    <dt>Session</dt><dd>${esc(s.name)}${b.recurringId?" · weekly":""}</dd>
+    <dt>Payment</dt><dd>${b.packId?"From pack":b.single?`Single ${money(s.single)} · ${b.paid?"paid":"owed"}`:p&&packLeft(p)>0?`Pack · ${packLeft(p)} left`:`Single ${money(s.single)}`}</dd>
+    <dt>Status</dt><dd>${{booked:"Booked",completed:"Done",late:"Late cancel · session counted",forgiven:"Late cancel · forgiven",cancelled:"Cancelled"}[b.status]}</dd></dl>`;
+  if(!asParent){
+    body+=`<div class="row">${contactRow(fullname(a),a.phone)}</div>${a.contacts[0]?`<div class="row">${contactRow(a.contacts[0].name+" ("+a.contacts[0].rel+")",a.contacts[0].phone)}</div>`:""}
+    <div class="small ${lc.late>=3?"":"muted"}" ${lc.late>=3?'style="color:var(--bad)"':""}>Late cancels: ${lc.late} · Forgiven: ${lc.forgiven}</div>`;
+  }
+  let actions="";
+  if(b.status==="booked"){
+    if(!asParent&&hrs<0)actions+=`<button class="btn primary" data-act="bDone" data-v="${b.id}">Mark done</button>`;
+    actions+=`<button class="btn danger" data-act="bCancel" data-v="${b.id}" data-p="${asParent?1:0}">${hrs<0?"No-show":"Cancel session"}</button>`;
+    if(!asParent){actions+=`<button class="btn ghost" data-act="profileOf" data-v="${a.id}">Open profile</button>`}
+  }else if(b.status==="late"&&!asParent){
+    actions+=`<button class="btn primary" data-act="bForgive" data-v="${b.id}">Forgive · give the session back</button>`;
+  }else if(b.status==="completed"&&!asParent){
+    actions+=`<button class="btn ghost" data-act="bUndo" data-v="${b.id}">Undo “done”</button>`;
+  }
+  if(b.recurringId&&!asParent&&b.status==="booked")actions+=`<button class="btn ghost" data-act="stopRec" data-v="${b.id}">Stop weekly from this date</button>`;
+  modal(`${sheetHead(fullname(a),`${a.age} · ${a.level} · ${esc(a.pos)}`)}${body}<div class="row">${actions}</div>${sessionNotes(b,asParent)}`);
+  hydrateImgs();
+}
+/* ---- session notes: text + photos, from coach or athlete; coach can keep a note private ---- */
+function visibleNotes(b,asParent){return (b.notes||[]).filter(n=>!(asParent&&n.private))}
+function sessionNotes(b,asParent){
+  const notes=visibleNotes(b,asParent);const coachMode=!asParent;
+  return `<div class="sn"><div class="row between"><h3>Session notes</h3><span class="small muted">${coachMode?"Shared with the family unless marked coach only":"Shared with your coach"}</span></div>
+  <div class="list">${notes.length?notes.map(n=>`<div class="item" style="align-items:flex-start"><div class="grow">
+    <div class="small"><b>${n.by==="athlete"?esc(ath(b.athleteId).first):esc(coach(n.coachId).short)}</b> <span class="muted">· ${dlabel(n.at)}</span>${n.private?' <span class="chip warn">Coach only</span>':""}</div>
+    ${n.text?`<div style="white-space:pre-wrap">${esc(n.text)}</div>`:""}
+    ${n.img?`<button class="snthumb" data-act="snView" data-b="${b.id}" data-v="${n.id}" aria-label="Open photo"><img data-img="${n.img}" alt="Session photo"></button>`:""}
+    ${(coachMode&&n.by!=="athlete")||(!coachMode&&n.by==="athlete")?`<button class="btn sm ghost" data-act="snDel" data-b="${b.id}" data-v="${n.id}" data-p="${asParent?1:0}" style="margin-top:4px">Delete</button>`:""}</div></div>`).join(""):`<div class="empty small">No notes yet.</div>`}</div>
+  <div class="field"><label for="sn-text">Add a note</label><textarea id="sn-text" rows="2" placeholder="${coachMode?"Worked on load timing, 3 rounds front toss":"What felt good, what to ask next time"}"></textarea></div>
+  <div class="row"><label class="btn sm" for="sn-file">Add photo</label><input id="sn-file" type="file" accept="image/*" hidden data-ch="snFile"><span class="small muted" id="sn-fname"></span>
+    ${coachMode?'<label class="row small" style="gap:4px"><input type="checkbox" id="sn-priv"> Coach only</label>':""}
+    <button class="btn sm primary" data-act="snAdd" data-v="${b.id}" data-p="${asParent?1:0}">Save note</button></div></div>`;
+}
+function hydrateImgs(){document.querySelectorAll("img[data-img]").forEach(async im=>{const k=im.dataset.img;let u=urlCache[k];if(!u){const bl=await IDB.get(k);if(!bl){im.replaceWith(Object.assign(document.createElement("span"),{className:"small muted",textContent:"Photo saved on another device"}));return}u=urlCache[k]=URL.createObjectURL(bl)}im.src=u})}
+async function snAdd(id,asParent,btn){
+  const b=S.bookings.find(x=>x.id===id);const text=($("#sn-text").value||"").trim();const f=$("#sn-file").files[0]||null;
+  if(!text&&!f){toast("Type a note or add a photo first");return}
+  btn.disabled=true;let img=null,ok=true;
+  if(f){img="img-"+uid();ok=await IDB.put(img,f)}
+  (b.notes=b.notes||[]).push({id:"sn"+uid(),by:asParent?"athlete":"coach",coachId:b.coachId,text,private:!asParent&&!!($("#sn-priv")&&$("#sn-priv").checked),img,at:ymd(new Date())});
+  save();bookingSheet(id,asParent);render();toast(ok?"Note saved":"Note saved · photo kept for this visit only");
+}
+function contactRow(label,phone){if(!phone)return `<span class="iconbtn" style="opacity:.35" aria-hidden="true">${ICON.phone}</span><div class="grow"><div>${esc(label)}</div><div class="muted small">No phone on file</div></div>`;return `<a class="iconbtn" href="${telHref(phone)}" aria-label="Call ${esc(label)}">${ICON.phone}</a><div class="grow"><div>${esc(label)}</div><div class="muted small num">${esc(phone)}</div></div>`}
+function cancelSheet(id,asParent){
+  const b=S.bookings.find(x=>x.id===id);const s=svc(b.serviceId);const hrs=hoursUntil(b.date,b.hour);
+  const late=hrs<24;
+  const cost=b.packId||activePack(b.athleteId,s.id,b.date)?"1 session comes off the pack":s.single==null?"no charge is recorded, because this session has no price set yet":`the ${money(s.single)} is still owed`;
+  let html=sheetHead(hrs<0?"Mark as no-show":"Cancel session",`${dlong(b.date)} · ${hlabel(b.hour)}`);
+  if(late){
+    html+=`<div class="notice warn"><b>${hrs<0?"Session time has passed.":"Less than 24 hours away."}</b> Under the 24-hour policy, ${cost}.${asParent?" Your coach may waive it.":" The spot reopens so you can fill it."}</div>`;
+    html+=`<div class="row"><button class="btn danger" data-act="cLate" data-v="${id}">${asParent?"Cancel anyway":"Cancel · counts as used"}</button>${asParent?"":`<button class="btn" data-act="cForgive" data-v="${id}">Cancel · forgive it</button>`}<button class="btn ghost" data-act="close">Keep it</button></div>`;
+  }else{
+    html+=`<div class="notice info">More than 24 hours away. No charge, and the spot reopens.</div>
+    <div class="row"><button class="btn danger" data-act="cFree" data-v="${id}">Cancel session</button><button class="btn ghost" data-act="close">Keep it</button></div>`;
+  }
+  modal(html);
+}
+/* extra hours: weekends, mornings, no-school days */
+function extraSheet(){
+  U.ex={coachId:U.coachView==="all"?"gil":U.coachView,date:U.day,from:9,to:12,note:"",minAge:"",maxAge:"",levels:[]};drawExtra();
+}
+function drawExtra(){
+  const x=U.ex;
+  const opt=(sel,list,endLbl)=>list.map(h=>`<option value="${h}" ${h===sel?"selected":""}>${endLbl?hend(h-1):hlabel(h)}</option>`).join("");
+  const n=Math.max(0,x.to-x.from);
+  modal(`${sheetHead("Open extra hours","Weekend clinic, a no-school day, or earlier than 3 PM")}
+  <div class="fields">
+    <div class="field"><label for="ex-c">Coach</label><select id="ex-c" data-ch="exC">${S.coaches.map(c=>`<option value="${c.id}" ${c.id===x.coachId?"selected":""}>${esc(c.name)}</option>`).join("")}</select></div>
+    <div class="field"><label for="ex-d">Date</label><input id="ex-d" type="date" value="${x.date}" data-ch="exD"></div>
+    <div class="field"><label for="ex-f">From</label><select id="ex-f" data-ch="exF">${opt(x.from,ALL_HOURS)}</select></div>
+    <div class="field"><label for="ex-t">Until</label><select id="ex-t" data-ch="exT">${opt(x.to,ALL_HOURS.map(h=>h+1),true)}</select></div>
+  </div>
+  <div class="fields"><div class="field"><label for="ex-mn">Youngest age (optional)</label><input id="ex-mn" type="number" min="0" value="${x.minAge}" placeholder="any" data-in="exMin"></div><div class="field"><label for="ex-mx">Oldest age (optional)</label><input id="ex-mx" type="number" min="0" value="${x.maxAge}" placeholder="any" data-in="exMax"></div></div>
+  <div class="filters"><span class="small muted">Levels</span>${LEVELS.map(l=>`<button class="togglechip ${x.levels.includes(l)?"on":""}" data-act="exLevel" data-v="${l}">${l}</button>`).join("")}</div>
+  <div class="field"><label for="ex-n">Note (optional)</label><input id="ex-n" value="${esc(x.note)}" placeholder="No school · teacher planning day" data-in="exN"></div>
+  <div class="notice info num">${n?`Opens ${n} hour${n>1?"s":""} on ${dlong(x.date)} for ${esc(coach(x.coachId).short)}${capService(x.coachId)?` · ${capService(x.coachId).spots} spots each`:""}. Hours that are already open are skipped.`:"Pick an end time after the start time."}</div>
+  <div class="row"><button class="btn primary" data-act="exSave" ${n?"":"disabled"}>Open hours</button><button class="btn ghost" data-act="close">Cancel</button></div>`);
+}
+/* broadcast */
+function broadcastSheet(serviceId,date,hour){
+  const s=svc(serviceId);const open=openSpots(serviceId,date,hour);
+  const L=limFor(serviceId,date,hour);U.bc={serviceId,date,hour,levels:L.levels.slice(),ageMin:L.minAge??"",ageMax:L.maxAge??""};
+  drawBroadcast();
+}
+function drawBroadcast(){
+  const b=U.bc;const s=svc(b.serviceId);const open=openSpots(b.serviceId,b.date,b.hour);
+  const targets=S.athletes.filter(a=>a.alerts&&(!b.levels.length||b.levels.includes(a.level))&&(b.ageMin===""||a.age>=+b.ageMin)&&(b.ageMax===""||a.age<=+b.ageMax));
+  const msg=`Dynasty: ${open} open spot${open>1?"s":""} ${dlabel(b.date)} at ${hlabel(b.hour)} – ${s.name}. Reply or book in the app. 24-hr cancellation policy applies.`;
+  modal(`${sheetHead("Broadcast open spot",`${dlong(b.date)} · ${hlabel(b.hour)} · ${esc(s.name)}`)}
+    <div class="label">Who gets it</div>
+    <div class="filters">${LEVELS.map(l=>`<button class="togglechip ${b.levels.includes(l)?"on":""}" data-act="bcLevel" data-v="${l}">${l}</button>`).join("")}</div>
+    <div class="filters"><span class="small muted">Age</span><input type="number" id="bc-min" placeholder="min" value="${b.ageMin}" data-in="bcMin" aria-label="Minimum age"><span class="muted">to</span><input type="number" id="bc-max" placeholder="max" value="${b.ageMax}" data-in="bcMax" aria-label="Maximum age"></div>
+    <div class="small muted">Only athletes who turned on “open spot alerts” are included.</div>
+    <div class="card small" style="max-height:150px;overflow:auto">${targets.length?targets.map(a=>`${esc(fullname(a))} <span class="muted">· ${a.age} · ${a.level}</span>`).join("<br>"):`<span class="muted">No one matches. Loosen the filters.</span>`}</div>
+    <div class="field"><label for="bc-msg">Message</label><textarea id="bc-msg" rows="3">${esc(msg)}</textarea></div>
+    <div class="row"><button class="btn primary" data-act="bcSend" ${targets.length?"":"disabled"}>Send to ${targets.length}</button><span class="small muted">Demo: nothing is actually texted.</span></div>`);
+}
+
+/* --- coach: athletes --- */
+function vAthletes(){
+  const q=U.q.toLowerCase();
+  let list=S.athletes.filter(a=>(!q||fullname(a).toLowerCase().includes(q)||a.school.toLowerCase().includes(q)||a.pos.toLowerCase().includes(q))
+    &&(!U.levels.length||U.levels.includes(a.level))&&(U.ageMin===""||a.age>=+U.ageMin)&&(U.ageMax===""||a.age<=+U.ageMax)&&(!U.alertsOnly||a.alerts));
+  if(U.coachView!=="all")list=list.filter(a=>S.bookings.some(b=>b.athleteId===a.id&&b.coachId===U.coachView)||a.coachId===U.coachView);
+  list.sort((a,b)=>a.age-b.age||a.last.localeCompare(b.last));
+  return `<div class="row between"><div><h2>Athletes</h2><div class="muted small num">${list.length} of ${S.athletes.length} shown${U.coachView!=="all"?` · ${esc(coach(U.coachView).short)}'s athletes`:""} · sorted by age to help pair up</div></div><button class="btn primary" data-act="addAthlete">+ Add athlete</button></div>
+  <div class="card" style="display:flex;flex-direction:column;gap:10px">
+    <div class="filters"><input type="search" id="f-q" placeholder="Search name, school, position" value="${esc(U.q)}" data-in="fQ" aria-label="Search athletes">
+      <span class="small muted">Age</span><input type="number" id="f-min" placeholder="min" value="${U.ageMin}" data-in="fMin" aria-label="Minimum age"><span class="muted">to</span><input type="number" id="f-max" placeholder="max" value="${U.ageMax}" data-in="fMax" aria-label="Maximum age"></div>
+    <div class="filters">${LEVELS.map(l=>`<button class="togglechip ${U.levels.includes(l)?"on":""}" data-act="fLevel" data-v="${l}">${l}</button>`).join("")}
+      <button class="togglechip ${U.alertsOnly?"on":""}" data-act="fAlerts">Alerts on</button>
+      ${(U.q||U.levels.length||U.ageMin!==""||U.ageMax!==""||U.alertsOnly)?`<button class="btn sm ghost" data-act="fClear">Clear</button>`:""}</div>
+  </div>
+  <div class="card list" id="alist">${list.length?list.map(athleteItem).join(""):`<div class="empty">No athletes match those filters.</div>`}</div>`;
+}
+function athleteItem(a){
+  const p=currentPack(a.id,"hit");const lc=lateCounts(a.id);
+  const left=p?packLeft(p):null;
+  return `<div class="item"><span class="avatar">${initials(a)}</span>
+    <div class="main" data-act="profileOf" data-v="${a.id}" role="button" tabindex="0"><div class="nm">${esc(fullname(a))}</div>
+    <div class="muted small">${a.age} yrs · ${a.level} · ${esc(a.pos)} · ${esc(a.school)}</div>
+    <div class="row" style="gap:6px;margin-top:4px">${left!=null?`<span class="chip ${left<=2?"warn":"teal"} num">${left} sessions left</span>`:`<span class="chip">Pays per session</span>`}
+      ${lc.late>=3?`<span class="chip bad num">${lc.late} late cancels</span>`:""}${a.alerts?`<span class="chip">Alerts on</span>`:""}</div></div>
+    ${(a.contacts[0]?.phone||a.phone)?`<a class="iconbtn" href="${telHref(a.contacts[0]?.phone||a.phone)}" aria-label="Call ${esc(a.contacts[0]?a.contacts[0].name:fullname(a))}">${ICON.phone}</a>`:""}</div>`;
+}
+function vProfile(){
+  const a=ath(U.athleteId);if(!a){U.athleteId=null;return vAthletes()}
+  const lc=lateCounts(a.id);
+  const tabs=[["overview","Overview"],["sessions","Sessions"],["dev","Six Tools"],["video","Video"]];
+  let body="";
+  if(U.profTab==="overview")body=profOverview(a,lc,false);
+  if(U.profTab==="sessions")body=profSessions(a);
+  if(U.profTab==="dev")body=profDevLive(a);
+  if(U.profTab==="video")body=profVideoList(a);
+  return `<button class="btn sm ghost" data-act="back" style="align-self:flex-start">${ICON.chevL} All athletes</button>
+  <div class="prof-head"><span class="avatar">${initials(a)}</span><div class="grow"><h2>${esc(fullname(a))}</h2>
+    <div class="muted">${a.age} yrs · ${a.level} · ${esc(a.pos)} · Bats ${a.bats} / Throws ${a.throws}</div></div>
+    ${a.phone?`<a class="iconbtn" href="${telHref(a.phone)}" aria-label="Call ${esc(fullname(a))}">${ICON.phone}</a>`:""}
+    <button class="btn" data-act="editAthlete" data-v="${a.id}">Edit</button>
+    <button class="btn primary" data-act="bookFor" data-v="${a.id}">Book</button></div>
+  <div class="subtabs">${tabs.map(([k,l])=>`<button class="${U.profTab===k?"on":""}" data-act="profTab" data-v="${k}">${l}</button>`).join("")}</div>${body}`;
+}
+function profOverview(a,lc,parent){
+  const packs=S.packs.filter(p=>p.athleteId===a.id).sort((x,y)=>x.purchased<y.purchased?1:-1);
+  const t=ymd(new Date());
+  const ow=owed(a.id);
+  return `<div class="grid2">
+    <div class="card" style="display:flex;flex-direction:column;gap:12px"><h3>Contacts</h3>
+      <div class="row">${contactRow(fullname(a)+" (athlete)",a.phone)}</div>
+      ${a.contacts.map(c=>`<div class="row">${contactRow(c.name+" · "+c.rel,c.phone)}</div>`).join("")}
+      <div class="muted small">${esc(a.email)}${a.contacts.filter(c=>c.email).map(c=>"<br>"+esc(c.email)).join("")}</div>
+      ${parent?"":`<button class="btn sm" data-act="addContact" data-v="${a.id}" style="align-self:flex-start">+ Add contact</button>`}
+    </div>
+    <div class="card" style="display:flex;flex-direction:column;gap:10px"><h3>Packages</h3>
+      ${packs.length?packs.map(p=>{const used=packUsed(p),left=packLeft(p);const exp=p.expires<t;const soon=!exp&&p.expires<=ymd(addDays(new Date(),21));
+        return `<div><div class="row between"><span>${esc(svc(p.serviceId).name)} · ${p.total}-pack</span><span class="num ${exp?"muted":""}">${exp?"Expired":left+" left"}</span></div>
+        <div class="meter" aria-hidden="true"><i style="width:${Math.min(100,used/p.total*100)}%"></i></div>
+        <div class="small muted num">Bought ${dlabel(p.purchased)} · ${exp?"expired":"expires"} ${dlabel(p.expires)} ${soon?'<span class="chip warn">expires soon</span>':""} · ${p.paid?"Paid":p.pending?'<span class="chip warn">Zelle sent · confirm</span>':'<span class="chip bad">Unpaid</span>'}</div></div>`}).join("")
+      :`<div class="muted small">No packages. Pays per session (${money(svc("hit").single)}).</div>`}
+      <div class="small muted num">${scheduledCount(a.id,"hit")} upcoming hitting sessions booked</div>
+      ${parent?"":`<button class="btn sm" data-act="sellPack" data-v="${a.id}" style="align-self:flex-start">+ Sell a package</button>`}
+    </div>
+    <div class="card" style="display:flex;flex-direction:column;gap:8px"><h3>Attendance</h3>
+      <div class="${lc.late>=3?"notice bad":"small"} num">Late cancels: <b>${lc.late}</b> · Forgiven: <b>${lc.forgiven}</b>${lc.late>=3?" · pattern to talk about":""}</div>
+      <div class="small muted">24-hour policy: cancelling inside 24 hours uses the session. Coaches can forgive.</div>
+      ${ow.length?`<div class="small">Balance: <b class="num">$${ow.reduce((n,o)=>n+o.amount,0)}</b> owed</div>`:`<div class="small muted">Nothing owed.</div>`}
+    </div>
+    <div class="card" style="display:flex;flex-direction:column;gap:8px"><h3>Details</h3>
+      <dl class="kv"><dt>School</dt><dd>${esc(a.school)}</dd><dt>Level</dt><dd>${a.level}</dd><dt>Main coach</dt><dd>${esc(coach(a.coachId).name)}</dd>
+      <dt>Open spot alerts</dt><dd>${parent?"":`<label class="row small"><input type="checkbox" data-ch="alerts" data-v="${a.id}" ${a.alerts?"checked":""}> ${a.alerts?"On":"Off"}</label>`}${parent?(a.alerts?"On":"Off"):""}</dd></dl>
+      ${parent?"":`<div class="label">Coach notes</div><div style="white-space:pre-wrap">${a.notes?esc(a.notes):'<span class="muted">No notes yet.</span>'}</div>`}
+    </div></div>`;
+}
+function profSessions(a){
+  const bs=S.bookings.filter(b=>b.athleteId===a.id&&b.status!=="cancelled").sort(byTime);
+  const now=new Date();
+  const up=bs.filter(b=>startOf(b.date,b.hour)>=now&&b.status==="booked");
+  const past=bs.filter(b=>!(startOf(b.date,b.hour)>=now&&b.status==="booked")).reverse();
+  const line=b=>`<div class="item"><span class="dot" style="background:${coach(b.coachId).color}"></span><div class="main" data-act="openBooking" data-v="${b.id}"><div>${dlong(b.date)} · ${hlabel(b.hour)}</div><div class="muted small">${esc(svc(b.serviceId).name)} · ${esc(coach(b.coachId).short)}${b.recurringId?" · weekly":""}${(n=>n?` · 📎 ${n}`:"")(visibleNotes(b,U.mode==="parent").length)}</div></div>
+    <span class="chip ${b.status==="completed"?"good":b.status==="late"?"bad":b.status==="booked"?"teal":""}">${{booked:"Booked",completed:"Done",late:"Late cancel",forgiven:"Forgiven"}[b.status]}</span></div>`;
+  return `<div class="grid2"><div class="card"><h3>Upcoming</h3><div class="list">${up.length?up.slice(0,12).map(line).join(""):`<div class="empty">Nothing booked.</div>`}</div></div>
+    <div class="card"><h3>History</h3><div class="list">${past.length?past.slice(0,15).map(line).join(""):`<div class="empty">No past sessions yet.</div>`}</div></div></div>`;
+}
+/* development preview */
+function statSeries(a){
+  const R=rng(a.id.charCodeAt(1)*97+a.age);
+  const n=6;const base={ev:48+a.age*3.2,sixty:9.2-a.age*0.12,pv:a.pos.includes("HP")?38+a.age*3:null,wt:70+a.age*6.5,ht:50+a.age*1.4,tb:60+a.age*14};
+  const mk=(b,step,dec)=>Array.from({length:n},(_,i)=>+(b+step*i+(R()-.5)*Math.abs(step)*1.4).toFixed(dec));
+  return {ev:{n:"Exit velocity",u:"mph",d:mk(base.ev,1.1,1),better:1},sixty:{n:"60-yard dash",u:"sec",d:mk(base.sixty,-0.05,2),better:-1},
+    pv:base.pv?{n:"Pitch velocity",u:"mph",d:mk(base.pv,0.9,1),better:1}:null,tb:{n:"Trap-bar deadlift",u:"lb",d:mk(base.tb,7,0),better:1},
+    wt:{n:"Weight",u:"lb",d:mk(base.wt,1.2,0),better:0},ht:{n:"Height",u:"in",d:mk(Math.min(base.ht,74),a.age<17?0.3:0,1),better:0}};
+}
+function spark(d,better){
+  const w=140,h=36,p=4;const mn=Math.min(...d),mx=Math.max(...d);const sc=v=>mx===mn?h/2:h-p-(v-mn)/(mx-mn)*(h-2*p);
+  const pts=d.map((v,i)=>`${(p+i*(w-2*p)/(d.length-1)).toFixed(1)},${sc(v).toFixed(1)}`);
+  const up=d[d.length-1]-d[0];const good=better===0?null:(up*better>0);
+  const col=good==null?"var(--muted)":good?"var(--good)":"var(--bad)";
+  const last=pts[pts.length-1].split(",");
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" preserveAspectRatio="none" aria-hidden="true"><polyline points="${p},${h-1} ${pts.join(" ")} ${w-p},${h-1}" fill="${col}" fill-opacity=".12" stroke="none"/><polyline points="${pts.join(" ")}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round"/><circle cx="${last[0]}" cy="${last[1]}" r="3" fill="${col}"/></svg>`;
+}
+function radar(a){
+  const cx=160,cy=150,r=105;const N=TOOLS.length;
+  const ang=i=>-Math.PI/2+i*2*Math.PI/N;
+  const pt=(i,v)=>[cx+Math.cos(ang(i))*r*v/10,cy+Math.sin(ang(i))*r*v/10];
+  let g="";
+  [2,4,6,8,10].forEach(v=>{g+=`<polygon points="${TOOLS.map((_,i)=>pt(i,v).join(",")).join(" ")}" fill="none" stroke="var(--line)" stroke-width="1"/>`});
+  TOOLS.forEach((_,i)=>{const[x,y]=pt(i,10);g+=`<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="var(--line)"/>`});
+  const poly=TOOLS.map((t,i)=>pt(i,a.tools[t.k]).join(",")).join(" ");
+  g+=`<polygon points="${poly}" fill="var(--teal)" fill-opacity=".35" stroke="var(--teal-hi)" stroke-width="2"/>`;
+  TOOLS.forEach((t,i)=>{const[x,y]=pt(i,a.tools[t.k]);g+=`<circle cx="${x}" cy="${y}" r="3.5" fill="var(--teal-hi)"/>`;
+    const[lx,ly]=pt(i,12.6);const anchor=Math.abs(lx-cx)<8?"middle":lx>cx?"start":"end";
+    g+=`<text x="${lx}" y="${ly}" text-anchor="${anchor}" font-size="11.5" dominant-baseline="middle">${t.n} · ${a.tools[t.k]}</text>`});
+  return `<svg viewBox="-40 0 400 300" width="100%" style="max-width:460px" role="img" aria-label="Six Tools scores">${g}</svg>`;
+}
+function profDev(a){
+  const st=statSeries(a);
+  const R=rng(a.age*31+a.first.length);
+  const logs=Array.from({length:6},(_,i)=>{const t=TOOLS[Math.floor(R()*TOOLS.length)];return{date:ymd(addDays(new Date(),-(i*4+2))),tool:t,coach:coach(t.c)}});
+  const drills={avg:"Tee work, opposite-field focus",pow:"Overload/underload bat speed",fld:"Short-hop series, glove work",arm:"Long toss + arm care band routine",spd:"Acceleration starts, 10-yd splits",mnt:"Breathing reset + vision reaction board"};
+  return `<div class="preview-banner">Coming soon · preview with sample numbers. Athletes and coaches will log these over time.</div>
+  <div class="grid2"><div class="card"><h3>The Six Tools</h3><div class="muted small">Coach rating, 1 to 10</div>${radar(a)}
+    <div class="list">${TOOLS.map(t=>`<div class="item" style="padding-block:6px"><span class="dot" style="background:${coach(t.c).color}"></span><div class="grow small">${t.n}</div><span class="small muted">${esc(coach(t.c).short)}</span><span class="num" style="width:26px;text-align:right">${a.tools[t.k]}</span></div>`).join("")}</div></div>
+  <div class="card"><h3>Training log</h3><div class="list">${logs.map(l=>`<div class="item"><span class="dot" style="background:${l.coach.color}"></span><div class="grow"><div class="small">${dlong(l.date)} · <b>${l.tool.n}</b></div><div class="muted small">${esc(l.coach.short)} · ${drills[l.tool.k]}</div></div></div>`).join("")}</div></div></div>
+  <h3>Measurables</h3>
+  <div class="stats">${Object.values(st).filter(Boolean).map(s=>{const l=s.d[s.d.length-1],f=s.d[0];const ch=(l-f);return `<div class="card"><div class="label">${s.n}</div><div class="stat"><span class="v num">${l}</span><span class="u">${s.u} · ${ch>=0?"+":""}${ch.toFixed(s.u==="sec"?2:1)} in 6 mo</span></div>${spark(s.d,s.better)}</div>`}).join("")}</div>`;
+}
+function profVideo(a){
+  const vids=S.videos.filter(v=>v.athleteId===a.id);
+  const sample=vids[0]||{title:"Sample: front toss · side angle",date:ymd(new Date()),comments:[{by:"gil",text:"Example comment. Gil marks the frame and leaves notes like this.",at:ymd(new Date())}],sample:true};
+  return `<div class="preview-banner">Coming soon · video upload and coach comments. Swing analysis is ${money(svc("video").single)} per video.</div>
+  <div class="grid2"><div class="card" style="display:flex;flex-direction:column;gap:10px"><div class="video"><span class="play">${ICON.play}</span><span class="cap">${esc(sample.title)}</span></div>
+    <div class="small muted">Uploaded ${dlabel(sample.date)}${sample.sample?" · sample":""}</div></div>
+  <div class="card" style="display:flex;flex-direction:column;gap:10px"><h3>Coach comments</h3>
+    ${sample.comments.map(c=>`<div class="comment"><b>${c.by==="athlete"?esc(a.first):esc(coach(c.by).short)}</b> <span class="muted small">${dlabel(c.at)}</span><div>${esc(c.text)}</div></div>`).join("")}
+    <div class="field"><label for="vc">Add a comment</label><textarea id="vc" rows="2" placeholder="Preview only"></textarea></div>
+    <button class="btn sm" disabled style="align-self:flex-start">Post (coming soon)</button></div></div>`;
+}
+
+function profVideoList(a){
+  const list=S.videos.filter(v=>v.athleteId===a.id).sort((x,y)=>x.date<y.date?1:-1);
+  return `<div class="row between"><div class="muted small">${list.length} video${list.length===1?"":"s"} · ${money(svc("video").single)} per analysis</div><button class="btn sm primary" data-act="uploadVideo">+ Upload a video</button></div>
+  <div class="card list">${list.length?list.map(v=>videoItem(v,false)).join(""):`<div class="empty">No videos yet.</div>`}</div>`;
+}
+/* --- coach: payments --- */
+function vPayments(){
+  const rows=[];
+  S.athletes.forEach(a=>owed(a.id).forEach(o=>rows.push({a,...o})));
+  rows.sort((x,y)=>(y.pending?1:0)-(x.pending?1:0));
+  const total=rows.reduce((n,r)=>n+r.amount,0);
+  const pend=rows.filter(r=>r.pending);
+  const t=ymd(new Date());const soon=ymd(addDays(new Date(),21));
+  const low=S.packs.filter(p=>p.expires>=t&&packLeft(p)<=2&&packLeft(p)>0);
+  const expiring=S.packs.filter(p=>p.expires>=t&&p.expires<=soon&&packLeft(p)>0);
+  return `<div class="row between"><div><h2>Payments</h2><div class="muted small">Zelle only · confirm each payment when it lands in the bank</div></div><button class="btn primary" data-act="sellPack" data-v="">+ Sell a package</button></div>
+  <div class="tiles"><div class="tile"><div class="label">Owed</div><div class="v num">$${total.toLocaleString()}</div></div>
+    <div class="tile"><div class="label">Zelle to confirm</div><div class="v num">${pend.length}</div></div>
+    <div class="tile"><div class="label">Packs at 2 or fewer</div><div class="v num">${low.length}</div></div>
+    <div class="tile"><div class="label">Expiring in 3 wks</div><div class="v num">${expiring.length}</div></div></div>
+  <div class="card"><h3>Waiting on payment</h3><div class="list">${rows.length?rows.map(r=>`<div class="item"><span class="avatar">${initials(r.a)}</span>
+    <div class="main" data-act="profileOf" data-v="${r.a.id}"><div class="nm">${esc(fullname(r.a))}</div><div class="muted small">${esc(r.label)}</div>${r.pending?`<span class="chip warn">Family says Zelle sent</span>`:""}</div>
+    <span class="num">${money(r.amount)}</span><button class="btn sm ${r.pending?"primary":""}" data-act="markPaid" data-k="${r.kind}" data-v="${r.ref.id}">Mark paid</button></div>`).join(""):`<div class="empty">Everyone is paid up.</div>`}</div></div>
+  <div class="card"><h3>Packs running low</h3><div class="list">${low.length?low.map(p=>{const a=ath(p.athleteId);return `<div class="item"><span class="avatar">${initials(a)}</span><div class="main" data-act="profileOf" data-v="${a.id}"><div class="nm">${esc(fullname(a))}</div><div class="muted small num">${packLeft(p)} left · expires ${dlabel(p.expires)}</div></div><a class="iconbtn" href="${telHref(a.contacts[0]?.phone||a.phone)}" aria-label="Call">${ICON.phone}</a></div>`}).join(""):`<div class="empty">No packs running low.</div>`}</div></div>`;
+}
+function sellSheet(aid){
+  U.sell={aid:aid||"",sid:"hit"};drawSell();
+}
+function drawSell(){
+  const s=svc(U.sell.sid);const packSvcs=S.services.filter(x=>x.packSize&&x.packPrice!=null);
+  modal(`${sheetHead("Sell a package")}
+    <div class="field"><label for="sp-a">Athlete</label><select id="sp-a" data-ch="spA"><option value="">Choose…</option>${S.athletes.slice().sort((a,b)=>a.last.localeCompare(b.last)).map(a=>`<option value="${a.id}" ${a.id===U.sell.aid?"selected":""}>${esc(fullname(a))}</option>`).join("")}</select></div>
+    <div class="field"><label for="sp-s">Package</label><select id="sp-s" data-ch="spS">${packSvcs.map(x=>`<option value="${x.id}" ${x.id===U.sell.sid?"selected":""}>${esc(x.name)} · ${x.packSize} for ${money(x.packPrice)}</option>`).join("")}</select></div>
+    ${s?`<div class="notice info num">${s.packSize} sessions for ${money(s.packPrice)} (${money(Math.round(s.packPrice/s.packSize))} each vs ${money(s.single)} single). Expires ${s.expiryMonths} months after purchase.</div>`:""}
+    <div class="row"><button class="btn primary" data-act="spSave" data-paid="0" ${U.sell.aid?"":"disabled"}>Add · waiting on Zelle</button><button class="btn" data-act="spSave" data-paid="1" ${U.sell.aid?"":"disabled"}>Add · already paid</button></div>`);
+}
+
+/* --- coach: settings --- */
+function vSettings(){
+  const cids=U.coachView==="all"?S.coaches.map(c=>c.id):[U.coachView];
+  return `<div><h2>Settings</h2><div class="muted small">Each coach names their own sessions and sets prices, pack size, expiration and spots per hour.</div></div>
+  ${cids.map(cid=>{const c=coach(cid);return `<div class="card" style="display:flex;flex-direction:column;gap:12px">
+    <div class="row"><i class="dot" style="background:${c.color};width:12px;height:12px"></i><h3 class="grow">${esc(c.name)}</h3><span class="muted small">${esc(c.title)}${c.main?" · main account":" · sub-account"}</span></div>
+    ${S.services.filter(s=>s.coachId===cid).map(s=>`<div class="card" style="background:var(--panel-2);display:flex;flex-direction:column;gap:8px">
+      <div class="fields">
+        <div class="field"><label for="sv-n-${s.id}">Session name</label><input id="sv-n-${s.id}" value="${esc(s.name)}" data-ch="sv" data-f="name" data-v="${s.id}"></div>
+        <div class="field"><label for="sv-p-${s.id}">Single price ($)</label><input id="sv-p-${s.id}" type="number" min="0" value="${s.single??""}" placeholder="TBD" data-ch="sv" data-f="single" data-v="${s.id}"></div>
+        ${s.sched?`<div class="field"><label for="sv-ps-${s.id}">Pack size</label><input id="sv-ps-${s.id}" type="number" min="0" value="${s.packSize??""}" placeholder="none" data-ch="sv" data-f="packSize" data-v="${s.id}"></div>
+        <div class="field"><label for="sv-pp-${s.id}">Pack price ($)</label><input id="sv-pp-${s.id}" type="number" min="0" value="${s.packPrice??""}" placeholder="none" data-ch="sv" data-f="packPrice" data-v="${s.id}"></div>
+        <div class="field"><label for="sv-e-${s.id}">Pack expires (months)</label><input id="sv-e-${s.id}" type="number" min="1" value="${s.expiryMonths}" data-ch="sv" data-f="expiryMonths" data-v="${s.id}"></div>
+        <div class="field"><label for="sv-sp-${s.id}">Spots per hour</label><input id="sv-sp-${s.id}" type="number" min="0" value="${s.spots??""}" placeholder="no limit" data-ch="sv" data-f="spots" data-v="${s.id}"></div>
+        <div class="field"><label for="sv-mn-${s.id}">Youngest age</label><input id="sv-mn-${s.id}" type="number" min="0" value="${s.minAge??""}" placeholder="any" data-ch="sv" data-f="minAge" data-v="${s.id}"></div>
+        <div class="field"><label for="sv-mx-${s.id}">Oldest age</label><input id="sv-mx-${s.id}" type="number" min="0" value="${s.maxAge??""}" placeholder="any" data-ch="sv" data-f="maxAge" data-v="${s.id}"></div>`:""}
+      </div>
+      ${s.sched?`<div class="filters"><span class="small muted">Levels allowed</span>${LEVELS.map(l=>`<button class="togglechip ${(s.levels||[]).includes(l)?"on":""}" data-act="svLevel" data-v="${s.id}" data-l="${l}">${l}</button>`).join("")}<span class="small muted">${(s.levels||[]).length?"":"none picked = all levels"}</span></div>`:""}
+      ${s.sched?`<label class="row small"><input type="checkbox" data-ch="sv" data-f="online" data-v="${s.id}" ${s.online?"checked":""}> Parents can book this online${s.spots?"":" (needs a spots-per-hour limit)"}</label>`:""}
+    </div>`).join("")}
+    <button class="btn sm" data-act="addService" data-v="${cid}" style="align-self:flex-start">+ Add a session type</button></div>`}).join("")}
+  <div class="card" style="display:flex;flex-direction:column;gap:12px"><h3>Facility</h3>
+    <div class="fields"><div class="field"><label for="fa-ph">Facility phone</label><input id="fa-ph" value="${esc(S.facility.phone)}" data-ch="fac" data-f="phone"></div>
+    <div class="field"><label for="fa-z">Zelle phone or email</label><input id="fa-z" value="${esc(S.facility.zelle)}" data-ch="fac" data-f="zelle"></div>
+    <div class="field"><label for="fa-zn">Zelle name shown</label><input id="fa-zn" value="${esc(S.facility.zelleName)}" data-ch="fac" data-f="zelleName"></div></div>
+    <div class="small muted">Regular hours: Monday to Friday, first session 3 PM, last session 9 PM. Coaches can open extra hours from the Schedule (weekends, no-school days). Cancellation: 24 hours.</div>
+    <div class="row"><button class="btn danger" data-act="reset">Reset demo data</button><span class="small muted">Puts the sample athletes and bookings back.</span></div></div>`;
+}
+
+/* --- parent side --- */
+function famAth(){return ath(U.family)||S.athletes[0]}
+const famId=a=>a.familyId||a.id;
+const famMembers=f=>S.athletes.filter(a=>famId(a)===f);
+function vBook(){
+  const a=famAth();
+  const t=new Date();const start=mondayOf(t);
+  const online=S.services.filter(s=>s.online&&s.sched&&s.spots);
+  let days="";
+  for(let i=0;i<14;i++){
+    const d=addDays(start,i);const ds=ymd(d);
+    ensureWeek(ymd(mondayOf(d)));
+    const slots=[];
+    online.forEach(s=>hoursFor(ds,[s.coachId]).forEach(h=>{if(startOf(ds,h)>t&&openSpots(s.id,ds,h)>0&&fits(a,limFor(s.id,ds,h))&&!S.bookings.some(b=>b.athleteId===a.id&&b.date===ds&&b.hour===h&&b.status==="booked"))slots.push({s,h,o:openSpots(s.id,ds,h)})}));
+    if(!slots.length)continue;
+    days+=`<div class="card" style="display:flex;flex-direction:column;gap:8px"><h3>${dlong(ds)}</h3><div class="spots">${slots.map(x=>`<button class="spot open" style="border-left-color:${coach(x.s.coachId).color}" data-act="pBook" data-s="${x.s.id}" data-d="${ds}" data-h="${x.h}"><span class="who">${hlabel(x.h)} – ${hend(x.h)}</span><span class="meta">${esc(x.s.name)} · ${x.o} open${(L=>L?` <span class="chip teal">${L}</span>`:"")(limLabel(limFor(x.s.id,ds,x.h)))}</span></button>`).join("")}</div></div>`;
+  }
+  const p=currentPack(a.id,"hit");
+  return `<div><h2>Book a session</h2><div class="muted small">Open spots for the next two weeks · booking for <b>${esc(fullname(a))}</b></div></div>
+  ${p&&packLeft(p)>0?`<div class="notice info num">${packLeft(p)} sessions left on your pack · expires ${dlong(p.expires)}${p.paid?"":" · payment pending"}</div>`:`<div class="notice warn">No sessions left on a pack. Single sessions are ${money(svc("hit").single)}${svc("hit").packSize&&svc("hit").packPrice!=null?`, or buy ${svc("hit").packSize} for ${money(svc("hit").packPrice)} on the Pay tab`:""}.</div>`}
+  <div class="small muted">Pitching, fielding and mental training are scheduled directly with Johan, Ozzy or Gil Sr. Call the facility to set those up.</div>
+  ${days||`<div class="empty card">No open spots right now. Turn on open spot alerts in your profile to hear when one opens.</div>`}`;
+}
+function vMine(){
+  const a=famAth();const now=new Date();
+  const bs=S.bookings.filter(b=>b.athleteId===a.id&&b.status!=="cancelled").sort(byTime);
+  const up=bs.filter(b=>b.status==="booked"&&startOf(b.date,b.hour)>=now);
+  const past=bs.filter(b=>!(b.status==="booked"&&startOf(b.date,b.hour)>=now)).reverse().slice(0,10);
+  const line=(b,canCancel)=>`<div class="item"><span class="dot" style="background:${coach(b.coachId).color}"></span><div class="main" data-act="openBooking" data-v="${b.id}" role="button" tabindex="0"><div>${dlong(b.date)} · ${hlabel(b.hour)}</div><div class="muted small">${esc(svc(b.serviceId).name)} · ${esc(coach(b.coachId).short)}${b.recurringId?" · weekly":""}${(n=>n?` · 📎 ${n}`:"")(visibleNotes(b,U.mode==="parent").length)}</div></div>
+    ${canCancel?`<button class="btn sm danger" data-act="bCancel" data-v="${b.id}" data-p="1">Cancel</button>`:`<span class="chip ${b.status==="completed"?"good":b.status==="late"?"bad":""}">${{booked:"Booked",completed:"Done",late:"Late cancel",forgiven:"Forgiven"}[b.status]}</span>`}</div>`;
+  return `<div><h2>My sessions</h2><div class="muted small">${esc(fullname(a))} · cancel at least 24 hours ahead to keep the session</div></div>
+  <div class="card"><h3>Upcoming</h3><div class="list">${up.length?up.slice(0,12).map(b=>line(b,true)).join(""):`<div class="empty">Nothing booked. Use the Book tab.</div>`}</div></div>
+  <div class="card"><h3>Past</h3><div class="list">${past.length?past.map(b=>line(b,false)).join(""):`<div class="empty">No past sessions yet.</div>`}</div></div>`;
+}
+function vPay(){
+  const a=famAth();const ow=owed(a.id);const s=svc("hit");
+  const total=ow.filter(o=>!o.pending).reduce((n,o)=>n+o.amount,0);
+  return `<div><h2>Pay</h2><div class="muted small">For <b>${esc(fullname(a))}</b> · Dynasty takes Zelle only.</div></div>
+  <div class="card" style="display:flex;flex-direction:column;gap:10px"><h3>Balance</h3>
+    ${ow.length?ow.map(o=>`<div class="row between"><span class="grow small">${esc(o.label)}</span><span class="num">${money(o.amount)}</span>${o.pending?'<span class="chip warn">Sent · waiting for coach</span>':""}</div>`).join(""):`<div class="muted">You're all paid up.</div>`}
+    ${total?`<div class="zelle"><div class="zl">Zelle</div><div>Send <b class="num">$${total}</b> to <b>${esc(S.facility.zelleName)}</b></div>
+      <div class="copyrow"><code id="zto">${esc(S.facility.zelle)}</code><button class="btn sm" data-act="copy" data-v="${esc(S.facility.zelle)}">Copy</button></div>
+      <div class="small muted">Memo: ${esc(fullname(a))}</div>
+      <button class="btn primary" data-act="pSent" style="align-self:flex-start">I sent it</button>
+      <div class="small muted">Your coach confirms when it arrives.</div></div>`:""}
+  </div>
+  <div class="card" style="display:flex;flex-direction:column;gap:10px"><h3>Buy sessions</h3>
+    <div class="tiles">${s.packSize&&s.packPrice!=null?`<div class="tile"><div class="label">${s.packSize}-session pack</div><div class="v num">${money(s.packPrice)}</div><div class="small muted num">${money(Math.round(s.packPrice/s.packSize))} per session · expires in ${s.expiryMonths} months</div><button class="btn sm primary" data-act="pBuy" style="margin-top:8px">Buy pack</button></div>`:""}
+    <div class="tile"><div class="label">Single session</div><div class="v num">${money(s.single)}</div><div class="small muted">Billed after each session</div></div>
+    <div class="tile"><div class="label">Video swing analysis</div><div class="v num">${money(svc("video").single)}</div><div class="small muted">Send a clip on the Video tab</div></div></div>
+  </div>`;
+}
+function vParentProfile(){
+  const a=famAth();const lc=lateCounts(a.id);
+  return `<div class="prof-head"><span class="avatar">${initials(a)}</span><div class="grow"><h2>${esc(fullname(a))}</h2><div class="muted">${a.age} yrs · ${a.level} · ${esc(a.pos)}</div></div></div>
+  <div class="card row between"><div><b>Open spot alerts</b><div class="small muted">Get a text when a hitting spot opens up.</div></div><label class="row"><input type="checkbox" data-ch="alerts" data-v="${a.id}" ${a.alerts?"checked":""}> ${a.alerts?"On":"Off"}</label></div>
+  <div class="subtabs">${[["overview","Overview"],["dev","Six Tools"],["video","Video"]].map(([k,l])=>`<button class="${(U.profTab==="sessions"?"overview":U.profTab)===k?"on":""}" data-act="profTab" data-v="${k}">${l}</button>`).join("")}</div>
+  ${U.profTab==="dev"?profDevLive(a):U.profTab==="video"?profVideoList(a):profOverview(a,lc,true)}`;
+}
+
+/* --- athlete form --- */
+function athleteSheet(id){
+  const a=id?ath(id):{first:"",last:"",age:"",level:"High School",pos:"",phone:"",email:"",school:"",notes:"",contacts:[]};
+  const c=a.contacts[0]||{name:"",rel:"Mother",phone:""};
+  modal(`${sheetHead(id?"Edit athlete":"Add athlete")}
+  <form id="af" class="fields" style="display:grid" novalidate>
+    <div class="field"><label for="af-first">First name</label><input id="af-first" name="first" value="${esc(a.first)}" required></div>
+    <div class="field"><label for="af-last">Last name</label><input id="af-last" name="last" value="${esc(a.last)}" required></div>
+    <div class="field"><label for="af-age">Age</label><input id="af-age" name="age" type="number" min="5" max="45" value="${a.age}" required></div>
+    <div class="field"><label for="af-level">Skill level</label><select id="af-level" name="level">${LEVELS.map(l=>`<option ${l===a.level?"selected":""}>${l}</option>`).join("")}</select></div>
+    <div class="field"><label for="af-pos">Position</label><input id="af-pos" name="pos" value="${esc(a.pos)}"></div>
+    <div class="field"><label for="af-school">School / team</label><input id="af-school" name="school" value="${esc(a.school)}"></div>
+    <div class="field"><label for="af-phone">Athlete phone</label><input id="af-phone" name="phone" type="tel" value="${esc(a.phone)}"></div>
+    <div class="field"><label for="af-email">Email</label><input id="af-email" name="email" type="email" value="${esc(a.email)}"></div>
+    ${id?"":`<div class="field"><label for="af-pn">Parent / contact name</label><input id="af-pn" name="pname" value=""></div>
+    <div class="field"><label for="af-pr">Relationship</label><input id="af-pr" name="prel" value="Mother"></div>
+    <div class="field"><label for="af-pp">Parent phone</label><input id="af-pp" name="pphone" type="tel" value=""></div>`}
+    <div class="field" style="grid-column:1/-1"><label for="af-notes">Coach notes</label><textarea id="af-notes" name="notes" rows="3">${esc(a.notes)}</textarea></div>
+  </form>
+  <div id="af-err" class="small" style="color:var(--bad)" hidden>First name, last name and age are needed.</div>
+  <div class="row"><button class="btn primary" data-act="afSave" data-v="${id||""}">${id?"Save":"Add athlete"}</button><button class="btn ghost" data-act="close">Cancel</button></div>`);
+}
+function contactSheet(aid){
+  modal(`${sheetHead("Add contact",esc(fullname(ath(aid))))}
+  <div class="fields"><div class="field"><label for="ct-n">Name</label><input id="ct-n"></div><div class="field"><label for="ct-r">Relationship</label><input id="ct-r" placeholder="Mother, coach, agent…"></div>
+  <div class="field"><label for="ct-p">Phone</label><input id="ct-p" type="tel"></div><div class="field"><label for="ct-e">Email</label><input id="ct-e" type="email"></div></div>
+  <div class="row"><button class="btn primary" data-act="ctSave" data-v="${aid}">Add contact</button><button class="btn ghost" data-act="close">Cancel</button></div>`);
+}
+let toastT=null;
+function toast(m){applyLayoutMode();const t=$("#toast");t.textContent=m;t.hidden=false;if(document.documentElement.classList.contains("nofixed"))t.style.top=Math.max(8,(lastTapY??0)-70)+"px";else t.style.top="";clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,2600)}
+
+/* ---------- video storage (stays on this device in the demo) ---------- */
+const memBlobs={};const urlCache={};
+const IDB={
+  db:null,
+  open(){if(IDB.db)return Promise.resolve(IDB.db);return new Promise((res,rej)=>{try{const r=indexedDB.open("dynasty-videos",1);r.onupgradeneeded=()=>r.result.createObjectStore("v");r.onsuccess=()=>{const db=r.result;db.onversionchange=()=>{db.close();IDB.db=null};IDB.db=db;res(db)};r.onerror=()=>rej(r.error);r.onblocked=()=>rej(new Error("blocked"))}catch(e){rej(e)}})},
+  wipe(){if(IDB.db){try{IDB.db.close()}catch(e){}IDB.db=null}return new Promise(res=>{try{const r=indexedDB.deleteDatabase("dynasty-videos");r.onsuccess=r.onerror=r.onblocked=()=>res()}catch(e){res()}setTimeout(res,1500)})},
+  async put(k,blob){memBlobs[k]=blob;try{const db=await IDB.open();await new Promise((res,rej)=>{const tx=db.transaction("v","readwrite");tx.objectStore("v").put(blob,k);tx.oncomplete=res;tx.onerror=()=>rej(tx.error)});return true}catch(e){return false}},
+  async get(k){if(memBlobs[k])return memBlobs[k];try{const db=await IDB.open();return await new Promise((res,rej)=>{const r=db.transaction("v").objectStore("v").get(k);r.onsuccess=()=>res(r.result||null);r.onerror=()=>rej(r.error)})}catch(e){return null}},
+  async del(k){delete memBlobs[k];try{const db=await IDB.open();db.transaction("v","readwrite").objectStore("v").delete(k)}catch(e){}}
+};
+async function videoURL(v){if(!v.blobKey)return null;if(urlCache[v.id])return urlCache[v.id];const b=await IDB.get(v.blobKey);if(!b)return null;urlCache[v.id]=URL.createObjectURL(b);return urlCache[v.id]}
+const fmtT=t=>{t=Math.max(0,t||0);const m=Math.floor(t/60),s=t-m*60;return `${m}:${s.toFixed(1).padStart(4,"0")}`};
+const VSTATUS={waiting:["Waiting for coach","warn"],review:["Coach reviewing","teal"],ready:["Review ready","good"]};
+
+/* ---------- video lists ---------- */
+function videoItem(v,showAthlete){
+  const a=ath(v.athleteId);const [sl,sc]=VSTATUS[v.status];
+  return `<div class="item"><span class="avatar">${showAthlete?initials(a):"▶"}</span>
+    <div class="main" data-act="openVideo" data-v="${v.id}" role="button" tabindex="0"><div class="nm">${showAthlete?esc(fullname(a))+" · ":""}${esc(v.title)}</div>
+    <div class="muted small">${dlabel(v.date)} · ${esc(coach(v.coachId).short)} · ${v.notes.length} note${v.notes.length===1?"":"s"}${v.tool?" · "+TOOLS.find(t=>t.k===v.tool).n:""}</div>
+    <div class="row" style="gap:6px;margin-top:4px"><span class="chip ${sc}">${sl}</span>${v.paid?"":v.pending?'<span class="chip warn">Zelle sent · confirm</span>':(svc("video").single!=null?'<span class="chip bad">Unpaid '+money(svc("video").single)+'</span>':"")}${v.blobKey?"":'<span class="chip">Sample</span>'}</div></div></div>`;
+}
+function vVideos(){
+  if(U.videoId)return vAnalyzer();
+  const f=U.vFilter||"open";
+  let list=S.videos.slice().sort((a,b)=>a.date<b.date?1:-1);
+  if(U.coachView!=="all")list=list.filter(v=>v.coachId===U.coachView);
+  const counts={open:list.filter(v=>v.status!=="ready").length,ready:list.filter(v=>v.status==="ready").length};
+  list=list.filter(v=>f==="open"?v.status!=="ready":v.status==="ready");
+  return `<div class="row between"><div><h2>Video analysis</h2><div class="muted small">${money(svc("video").single)} per video · slow motion, frame by frame, draw and comment</div></div><button class="btn primary" data-act="uploadVideo">+ Upload a video</button></div>
+  <div class="filters"><button class="togglechip ${f==="open"?"on":""}" data-act="vFilter" data-v="open">To review · ${counts.open}</button><button class="togglechip ${f==="ready"?"on":""}" data-act="vFilter" data-v="ready">Done · ${counts.ready}</button></div>
+  <div class="card list">${list.length?list.map(v=>videoItem(v,true)).join(""):`<div class="empty">${f==="open"?"No videos waiting. Nice.":"No finished reviews yet."}</div>`}</div>`;
+}
+function vParentVideo(){
+  if(U.videoId)return vAnalyzer();
+  const a=famAth();
+  const list=S.videos.filter(v=>v.athleteId===a.id).sort((x,y)=>x.date<y.date?1:-1);
+  return `<div class="row between"><div><h2>Swing videos</h2><div class="muted small"><b>${esc(fullname(a))}</b> · Send a clip, and your coach marks it up frame by frame · ${money(svc("video").single)} each</div></div><button class="btn primary" data-act="uploadVideo">+ Send a video</button></div>
+  <div class="notice info small">Tips: film from the side or straight behind, landscape, 5 to 30 seconds. Slow-motion mode on the phone works great.</div>
+  <div class="card list">${list.length?list.map(v=>videoItem(v,false)).join(""):`<div class="empty">No videos yet. Tap “Send a video” to get your first analysis.</div>`}</div>`;
+}
+function uploadSheet(){
+  const parent=U.mode==="parent";
+  U.up={aid:parent?U.family:(U.athleteId||""),coachId:U.coachView==="all"?"gil":U.coachView,file:null};
+  drawUpload();
+}
+function drawUpload(){
+  const parent=U.mode==="parent";const u=U.up;
+  modal(`${sheetHead(parent?"Send a swing video":"Upload a video",parent?`${money(svc("video").single)} · paid by Zelle`:"Film in a session, or add a clip a family sent you")}
+  ${parent?"":`<div class="field"><label for="up-a">Athlete</label><select id="up-a" data-ch="upA"><option value="">Choose…</option>${S.athletes.slice().sort((a,b)=>a.last.localeCompare(b.last)).map(a=>`<option value="${a.id}" ${a.id===u.aid?"selected":""}>${esc(fullname(a))}</option>`).join("")}</select></div>`}
+  <div class="field"><label for="up-f">Video</label><input id="up-f" type="file" accept="video/*" data-ch="upF"></div>
+  ${u.file?`<div class="small muted">${esc(u.file.name)} · ${(u.file.size/1048576).toFixed(1)} MB${u.file.size>200*1048576?' · <span style="color:var(--warn)">large file, a shorter clip loads faster</span>':""}</div>`:""}
+  <div class="fields"><div class="field"><label for="up-t">Title</label><input id="up-t" placeholder="Front toss · side angle" value="${esc(u.title||"")}" data-in="upT"></div>
+  <div class="field"><label for="up-c">Coach</label><select id="up-c" data-ch="upC">${S.coaches.map(c=>`<option value="${c.id}" ${c.id===u.coachId?"selected":""}>${esc(c.name)}</option>`).join("")}</select></div>
+  <div class="field"><label for="up-tool">Focus (optional)</label><select id="up-tool" data-ch="upTool"><option value="">—</option>${TOOLS.map(t=>`<option value="${t.k}" ${u.tool===t.k?"selected":""}>${t.n}</option>`).join("")}</select></div></div>
+  <div class="field"><label for="up-n">${parent?"What should the coach look at?":"Note"}</label><textarea id="up-n" rows="2" placeholder="Rolling over on inside pitches" data-in="upN">${esc(u.note||"")}</textarea></div>
+  <div class="small muted">Demo: the video stays on this device. In the real app it uploads so the coach sees it on their phone.</div>
+  <div class="row"><button class="btn primary" data-act="upSave" ${u.file&&u.aid?"":"disabled"}>${parent?`Send · ${money(svc("video").single)}`:"Upload"}</button><button class="btn ghost" data-act="close">Cancel</button></div>`);
+}
+async function upSave(){
+  const u=U.up;const parent=U.mode==="parent";
+  const id="v"+uid();const key="blob-"+id;
+  const ok=await IDB.put(key,u.file);
+  S.videos.push({id,athleteId:u.aid,coachId:u.coachId,title:(u.title||"").trim()||u.file.name.replace(/\.[^.]+$/,""),ask:(u.note||"").trim(),date:ymd(new Date()),status:"waiting",paid:!parent,pending:false,tool:u.tool||"",blobKey:key,notes:[]});
+  save();closeModal();U.videoId=null;render();
+  toast(ok?(parent?"Sent · pay by Zelle on the Pay tab":"Uploaded"):"Uploaded for this visit only · this browser blocks saving videos");
+}
+
+/* ---------- analyzer ---------- */
+const AN={tool:"arrow",color:"#F5D547",draft:[],drawing:null,shown:null,editing:null,lastT:0,stopAtNotes:true,raf:0};
+const COLORS=["#F5D547","#E06B5B","#4FC1B9","#F0EBDD"];
+function vAnalyzer(){
+  const v=S.videos.find(x=>x.id===U.videoId);if(!v){U.videoId=null;return U.mode==="parent"?vParentVideo():vVideos()}
+  const a=ath(v.athleteId);const coachMode=U.mode==="coach";const [sl,sc]=VSTATUS[v.status];
+  AN.draft=[];AN.drawing=null;AN.shown=null;AN.editing=null;AN.stopAtNotes=!coachMode;
+  setTimeout(()=>mountAnalyzer(v),0);
+  const toolBtn=(k,l)=>`<button class="${AN.tool===k?"on":""}" data-act="anTool" data-v="${k}" aria-label="${l}">${l}</button>`;
+  return `<button class="btn sm ghost" data-act="vBack" style="align-self:flex-start">${ICON.chevL} All videos</button>
+  <div class="row between"><div class="grow"><h2>${esc(v.title)}</h2><div class="muted small">${esc(fullname(a))} · ${a.age} · ${a.level} · ${dlong(v.date)} · ${esc(coach(v.coachId).name)}</div></div><span class="chip ${sc}">${sl}</span></div>
+  ${v.ask?`<div class="notice info small"><b>${esc(a.first)} asks:</b> ${esc(v.ask)}</div>`:""}
+  <div class="an-grid">
+    <div class="an-main">
+      <div class="stage" id="stage">${v.blobKey?`<video id="vid" playsinline preload="auto" muted></video>`:""}<canvas id="cv" aria-label="Video drawing layer"></canvas><div class="stage-msg" id="stageMsg" hidden></div></div>
+      <div class="an-ctrl">
+        <button class="btn sm" data-act="anStep" data-v="-1" aria-label="Back one frame">◀︎ 1f</button>
+        <button class="btn sm primary" data-act="anPlay" id="anPlay">Play</button>
+        <button class="btn sm" data-act="anStep" data-v="1" aria-label="Forward one frame">1f ▶︎</button>
+        <span class="num small" id="anTime">0:00.0</span>
+        <div class="seg sm" aria-label="Speed">${[[.25,"¼×"],[.5,"½×"],[1,"1×"]].map(([r,l])=>`<button data-act="anRate" data-v="${r}" class="${r===1?"on":""}">${l}</button>`).join("")}</div>
+        <label class="small row" style="gap:4px"><input type="checkbox" id="anStop" ${AN.stopAtNotes?"checked":""} data-ch="anStop"> Stop at notes</label>
+      </div>
+      <input type="range" id="anSeek" min="0" max="1000" value="0" aria-label="Scrub video" style="width:100%">
+      ${coachMode?`<div class="an-tools">
+        <div class="seg sm">${toolBtn("arrow","Arrow")}${toolBtn("line","Line")}${toolBtn("circle","Circle")}${toolBtn("free","Draw")}${toolBtn("angle","Angle")}</div>
+        <div class="row" style="gap:6px">${COLORS.map(c=>`<button class="swatch ${AN.color===c?"on":""}" style="background:${c}" data-act="anColor" data-v="${c}" aria-label="Color"></button>`).join("")}</div>
+        <button class="btn sm ghost" data-act="anUndo">Undo</button><button class="btn sm ghost" data-act="anClear">Clear</button>
+      </div>
+      <div class="an-compose card">
+        <div class="small muted" id="anComposeLbl">Pause on a frame, draw, then add a note</div>
+        <textarea id="anText" rows="2" placeholder="Hands drifting forward at foot strike…"></textarea>
+        <div class="row"><button class="btn sm primary" data-act="anSave" id="anSaveBtn">Save note</button><button class="btn sm ghost" data-act="anCancelEdit" id="anCancel" hidden>Cancel edit</button></div>
+      </div>`:`<div class="an-compose card"><div class="small muted">Reply to your coach</div><textarea id="anText" rows="2" placeholder="Question about this part…"></textarea><div class="row"><button class="btn sm primary" data-act="anSave">Send reply</button></div></div>`}
+    </div>
+    <div class="an-side">
+      <div class="card"><h3>Notes</h3><div class="list" id="anList"></div></div>
+      ${coachMode?`<div class="card" style="display:flex;flex-direction:column;gap:10px"><h3>Review</h3>
+        <div class="field"><label for="an-tool">Counts toward</label><select id="an-tool" data-ch="anTag" data-v="${v.id}"><option value="">—</option>${TOOLS.map(t=>`<option value="${t.k}" ${v.tool===t.k?"selected":""}>${t.n}</option>`).join("")}</select></div>
+        ${v.status!=="ready"?`<button class="btn primary" data-act="anDone" data-v="${v.id}">Mark review done · send to family</button>`:`<button class="btn" data-act="anReopen" data-v="${v.id}">Reopen review</button>`}
+        <div class="small muted">${v.paid?"Paid":"Not paid yet · "+money(svc("video").single)}</div>
+        ${v.blobKey?`<button class="btn sm danger" data-act="anDelete" data-v="${v.id}" style="align-self:flex-start">Delete video</button>`:""}</div>`:""}
+    </div>
+  </div>`;
+}
+function mountAnalyzer(v){
+  const stage=$("#stage"),cv=$("#cv"),vid=$("#vid");if(!stage||!cv)return;
+  const ctx=cv.getContext("2d");
+  const coachMode=U.mode==="coach";
+  AN.v=v;
+  function fit(ratio){
+    stage.style.aspectRatio=String(ratio);
+    stage.style.width=`min(100%, calc(62vh * ${ratio}))`;
+    requestAnimationFrame(size);
+  }
+  function size(){const w=stage.clientWidth,h=stage.clientHeight;const dpr=window.devicePixelRatio||1;cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);cv.style.width=w+"px";cv.style.height=h+"px";draw()}
+  AN.size=size;
+  const W=()=>cv.width,H=()=>cv.height;
+  const P=p=>[p[0]*W(),p[1]*H()];
+  function drawSample(){
+    // a still "frame" for seeded sample videos: batter silhouette on a cage background
+    const w=W(),h=H();const g=ctx.createLinearGradient(0,0,0,h);g.addColorStop(0,"#0f2523");g.addColorStop(1,"#071110");ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
+    ctx.strokeStyle="rgba(240,235,221,.06)";ctx.lineWidth=1;for(let x=0;x<w;x+=w/24){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke()}for(let y=0;y<h;y+=h/14){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke()}
+    ctx.fillStyle="#1d3a37";ctx.fillRect(0,h*.86,w,h*.14);
+    ctx.strokeStyle="#c9c2b0";ctx.lineCap="round";ctx.lineWidth=Math.max(6,w*.014);
+    const s=(x,y)=>[w*x,h*y];const L=(a,b)=>{ctx.beginPath();ctx.moveTo(...s(...a));ctx.lineTo(...s(...b));ctx.stroke()};
+    ctx.fillStyle="#c9c2b0";ctx.beginPath();ctx.arc(...s(.47,.25),w*.03,0,7);ctx.fill();
+    L([.47,.3],[.49,.55]);L([.49,.55],[.42,.7]);L([.42,.7],[.40,.86]);L([.49,.55],[.57,.7]);L([.57,.7],[.60,.86]);
+    L([.48,.34],[.42,.40]);L([.42,.40],[.45,.33]);L([.48,.34],[.44,.36]);
+    ctx.strokeStyle="#8a6a3e";ctx.lineWidth=Math.max(4,w*.009);L([.45,.33],[.53,.12]);
+    ctx.fillStyle="rgba(240,235,221,.5)";ctx.font=`${Math.max(11,w*.018)}px IBM Plex Sans, sans-serif`;ctx.fillText("Sample frame · upload a real clip to try playback",w*.03,h*.07);
+  }
+  function shapeDraw(sh){
+    ctx.strokeStyle=sh.color;ctx.fillStyle=sh.color;ctx.lineWidth=Math.max(3,W()*.005);ctx.lineCap="round";ctx.lineJoin="round";
+    const pts=sh.pts.map(P);if(!pts.length)return;
+    if(sh.type==="free"){ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(...p):ctx.moveTo(...p));ctx.stroke();return}
+    if(pts.length<2)return;
+    const [a,b]=pts;
+    if(sh.type==="line"||sh.type==="arrow"){ctx.beginPath();ctx.moveTo(...a);ctx.lineTo(...b);ctx.stroke();
+      if(sh.type==="arrow"){const ang=Math.atan2(b[1]-a[1],b[0]-a[0]);const hl=Math.max(14,W()*.025);ctx.beginPath();ctx.moveTo(...b);ctx.lineTo(b[0]-hl*Math.cos(ang-.45),b[1]-hl*Math.sin(ang-.45));ctx.lineTo(b[0]-hl*Math.cos(ang+.45),b[1]-hl*Math.sin(ang+.45));ctx.closePath();ctx.fill()}}
+    if(sh.type==="circle"){ctx.beginPath();ctx.arc(a[0],a[1],Math.hypot(b[0]-a[0],b[1]-a[1]),0,Math.PI*2);ctx.stroke()}
+    if(sh.type==="angle"){ctx.beginPath();ctx.moveTo(...a);ctx.lineTo(...b);if(pts[2])ctx.lineTo(...pts[2]);ctx.stroke();
+      if(pts[2]){const c=pts[2];const a1=Math.atan2(a[1]-b[1],a[0]-b[0]),a2=Math.atan2(c[1]-b[1],c[0]-b[0]);let d=Math.abs(a1-a2);if(d>Math.PI)d=2*Math.PI-d;
+        const deg=Math.round(d*180/Math.PI);const r=Math.max(18,W()*.035);ctx.beginPath();let s0=a1,e0=a2;let diff=e0-s0;while(diff>Math.PI)diff-=2*Math.PI;while(diff<-Math.PI)diff+=2*Math.PI;ctx.arc(b[0],b[1],r,s0,s0+diff,diff<0);ctx.stroke();
+        const fs=Math.max(13,W()*.022);ctx.font=`600 ${fs}px IBM Plex Sans, sans-serif`;const mid=s0+diff/2;const tx=b[0]+Math.cos(mid)*(r+fs),ty=b[1]+Math.sin(mid)*(r+fs);
+        ctx.fillStyle="rgba(0,0,0,.65)";const tw=ctx.measureText(deg+"°").width;ctx.fillRect(tx-tw/2-4,ty-fs*.8,tw+8,fs*1.15);ctx.fillStyle=sh.color;ctx.textAlign="center";ctx.fillText(deg+"°",tx,ty);ctx.textAlign="start"}}
+  }
+  function draw(){
+    ctx.clearRect(0,0,W(),H());
+    if(!vid)drawSample();
+    const n=AN.shown&&v.notes.find(x=>x.id===AN.shown);
+    if(n)(n.shapes||[]).forEach(shapeDraw);
+    if(!vid||vid.paused){AN.draft.forEach(shapeDraw);if(AN.drawing)shapeDraw(AN.drawing)}
+  }
+  AN.draw=draw;
+  function listHTML(){
+    const notes=v.notes.slice().sort((a,b)=>a.t-b.t);
+    return notes.length?notes.map(n=>`<div class="item an-note ${AN.shown===n.id?"on":""}" style="align-items:flex-start"><button class="chip teal num" data-act="anJump" data-v="${n.id}">${fmtT(n.t)}</button>
+      <div class="grow"><div class="small"><b>${n.by==="athlete"?esc(ath(v.athleteId).first):esc(coach(n.by).short)}</b>${n.shapes&&n.shapes.length?` <span class="muted">· ${n.shapes.length} drawing${n.shapes.length>1?"s":""}</span>`:""}</div><div style="white-space:pre-wrap">${esc(n.text)||'<span class="muted">(drawing only)</span>'}</div>
+      ${(coachMode&&n.by!=="athlete")||(!coachMode&&n.by==="athlete")?`<div class="row" style="gap:6px;margin-top:4px">${coachMode?`<button class="btn sm ghost" data-act="anEdit" data-v="${n.id}">Edit</button>`:""}<button class="btn sm ghost" data-act="anDel" data-v="${n.id}">Delete</button></div>`:""}</div></div>`).join("")
+      :`<div class="empty small">${coachMode?"No notes yet. Pause, draw on the frame, and save a note.":"Your coach hasn't added notes yet."}</div>`;
+  }
+  AN.list=()=>{const l=$("#anList");if(l)l.innerHTML=listHTML()};
+  AN.list();
+  const timeEl=$("#anTime"),seek=$("#anSeek"),playBtn=$("#anPlay");
+  function syncTime(){if(!vid)return;const d=vid.duration||0;timeEl.textContent=`${fmtT(vid.currentTime)} / ${fmtT(d)}`;if(d&&!AN.scrubbing)seek.value=Math.round(vid.currentTime/d*1000);const lbl=$("#anComposeLbl");if(lbl&&!AN.editing)lbl.textContent=`New note at ${fmtT(vid.currentTime)}`}
+  AN.sync=syncTime;
+  if(!vid){fit(16/9);[playBtn,seek,...document.querySelectorAll('[data-act="anStep"],[data-act="anRate"]')].forEach(b=>b&&(b.disabled=true));timeEl.textContent="Still frame";
+    if(v.notes[0]){AN.shown=v.notes[0].id;AN.list();draw()}}
+  else{
+    videoURL(v).then(url=>{
+      if(!url){const m=$("#stageMsg");m.hidden=false;m.textContent="This video was uploaded on another device or browser. In the demo, videos stay where they were uploaded.";fit(16/9);return}
+      vid.src=url;
+    });
+    vid.addEventListener("loadedmetadata",()=>{fit((vid.videoWidth||16)/(vid.videoHeight||9));syncTime()});
+    vid.addEventListener("timeupdate",()=>{
+      const t=vid.currentTime;
+      if(!vid.paused&&AN.stopAtNotes){const hit=v.notes.filter(n=>n.t>AN.lastT+0.01&&n.t<=t+0.04).sort((a,b)=>a.t-b.t)[0];if(hit){vid.pause();vid.currentTime=hit.t;AN.shown=hit.id;AN.list();draw();AN.lastT=hit.t;syncTime();return}}
+      if(!vid.paused){const recent=v.notes.filter(n=>n.t<=t&&t-n.t<1.5).sort((a,b)=>b.t-a.t)[0];const id=recent?recent.id:null;if(id!==AN.shown){AN.shown=id;AN.list();draw()}}
+      AN.lastT=t;syncTime();
+    });
+    vid.addEventListener("play",()=>{playBtn.textContent="Pause";draw()});
+    vid.addEventListener("pause",()=>{playBtn.textContent="Play"});
+    vid.addEventListener("ended",()=>{playBtn.textContent="Play";AN.lastT=-1});
+    seek.addEventListener("input",()=>{AN.scrubbing=true;if(vid.duration){vid.currentTime=seek.value/1000*vid.duration;AN.lastT=vid.currentTime;const near=v.notes.find(n=>Math.abs(n.t-vid.currentTime)<0.15);AN.shown=near?near.id:null;AN.list();draw()}});
+    seek.addEventListener("change",()=>{AN.scrubbing=false;syncTime()});
+  }
+  /* drawing */
+  if(coachMode){
+    const pos=e=>{const r=cv.getBoundingClientRect();return[Math.min(1,Math.max(0,(e.clientX-r.left)/r.width)),Math.min(1,Math.max(0,(e.clientY-r.top)/r.height))]};
+    cv.style.touchAction="none";cv.style.cursor="crosshair";
+    cv.addEventListener("pointerdown",e=>{
+      if(vid&&!vid.paused)vid.pause();
+      cv.setPointerCapture(e.pointerId);const p=pos(e);
+      if(AN.tool==="angle"&&AN.drawing&&AN.drawing.type==="angle"&&AN.drawing.pts.length===2){AN.drawing.pts.push(p);AN.angleThird=true;draw();return}
+      AN.drawing={type:AN.tool,color:AN.color,pts:AN.tool==="free"?[p]:[p,p]};draw();
+    });
+    cv.addEventListener("pointermove",e=>{
+      if(!AN.drawing)return;const p=pos(e);
+      if(AN.drawing.type==="free"){AN.drawing.pts.push(p)}
+      else if(AN.drawing.type==="angle"&&AN.angleThird){AN.drawing.pts[2]=p}
+      else if(e.buttons||e.pointerType==="touch"){AN.drawing.pts[1]=p}
+      draw();
+    });
+    cv.addEventListener("pointerup",e=>{
+      if(!AN.drawing)return;const d=AN.drawing;
+      if(d.type==="angle"&&!AN.angleThird){if(Math.hypot(d.pts[1][0]-d.pts[0][0],d.pts[1][1]-d.pts[0][1])<0.01){AN.drawing=null;draw();toast("Angle: drag along one line, then tap the third point")}return}
+      AN.angleThird=false;
+      const tiny=d.type!=="free"&&Math.hypot(d.pts[1][0]-d.pts[0][0],d.pts[1][1]-d.pts[0][1])<0.008;
+      if(!tiny&&!(d.type==="free"&&d.pts.length<3))AN.draft.push(d);
+      AN.drawing=null;draw();
+    });
+  }
+  const ro=new ResizeObserver(()=>size());ro.observe(stage);
+  AN.cleanup=()=>{ro.disconnect();if(vid)vid.pause()};
+}
+function anSave(){
+  const v=AN.v;const txt=($("#anText").value||"").trim();const coachMode=U.mode==="coach";
+  if(!txt&&!AN.draft.length){toast(coachMode?"Draw something or type a note first":"Type a reply first");return}
+  const vid=$("#vid");const t=vid?vid.currentTime:0;
+  if(AN.editing){const n=v.notes.find(x=>x.id===AN.editing);n.text=txt;n.shapes=AN.draft.slice();AN.editing=null;$("#anCancel").hidden=true;$("#anSaveBtn").textContent="Save note";toast("Note updated");AN.shown=n.id}
+  else{const n={id:"n"+uid(),t:+t.toFixed(3),text:txt,shapes:coachMode?AN.draft.slice():[],by:coachMode?v.coachId:"athlete",at:ymd(new Date())};v.notes.push(n);AN.shown=n.id;toast(coachMode?`Note saved at ${fmtT(t)}`:"Reply sent")}
+  if(coachMode&&v.status==="waiting")v.status="review";
+  AN.draft=[];$("#anText").value="";save();AN.list();AN.draw();
+}
+
+/* ---------- Six Tools: working ---------- */
+function ensureDev(a){
+  if(a.meas&&a.train&&a.toolHist)return;
+  const st=statSeries(a);a.meas={};
+  Object.entries(st).forEach(([k,s])=>{if(!s)return;a.meas[k]=s.d.map((v,i)=>({date:ymd(addDays(new Date(),-(5-i)*30-3)),v,by:"coach"}))});
+  const R=rng(a.age*31+a.first.length);
+  const drills={avg:"Tee work, opposite-field focus",pow:"Overload/underload bat speed",fld:"Short-hop series, glove work",arm:"Long toss + arm care band routine",spd:"Acceleration starts, 10-yd splits",mnt:"Breathing reset + vision reaction board"};
+  a.train=Array.from({length:6},(_,i)=>{const t=TOOLS[Math.floor(R()*TOOLS.length)];return{id:uid(),date:ymd(addDays(new Date(),-(i*4+2))),tool:t.k,coachId:t.c,drill:drills[t.k],note:""}});
+  a.toolHist=TOOLS.map(t=>({k:t.k,v:Math.max(1,a.tools[t.k]-(R()>.5?1:0)),date:ymd(addDays(new Date(),-60)),by:t.c}));
+}
+const MEAS={ev:{n:"Exit velocity",u:"mph",better:1,dec:1},sixty:{n:"60-yard dash",u:"sec",better:-1,dec:2},pv:{n:"Pitch velocity",u:"mph",better:1,dec:1},tb:{n:"Trap-bar deadlift",u:"lb",better:1,dec:0},wt:{n:"Weight",u:"lb",better:0,dec:0},ht:{n:"Height",u:"in",better:0,dec:1}};
+function profDevLive(a){
+  ensureDev(a);const coachMode=U.mode==="coach";
+  const since=k=>{const h=a.toolHist.filter(x=>x.k===k).sort((x,y)=>x.date<y.date?-1:1)[0];return h?a.tools[k]-h.v:0};
+  const month=ymd(addDays(new Date(),-30));
+  const perTool=Object.fromEntries(TOOLS.map(t=>[t.k,a.train.filter(x=>x.tool===t.k&&x.date>=month).length]));
+  const maxT=Math.max(1,...Object.values(perTool));
+  const vids=S.videos.filter(v=>v.athleteId===a.id&&v.status==="ready"&&v.tool);
+  return `<div class="grid2"><div class="card"><h3>The Six Tools</h3><div class="muted small">Coach rating, 1 to 10${coachMode?" · tap − or + to update":""}</div>${radar(a)}
+    <div class="list">${TOOLS.map(t=>{const d=since(t.k);const mine=coachMode&&(U.coachView==="all"||U.coachView===t.c);return `<div class="item" style="padding-block:6px"><span class="dot" style="background:${coach(t.c).color}"></span><div class="grow small">${t.n}<div class="muted" style="font-size:12px">${esc(coach(t.c).short)}${d?` · <span style="color:${d>0?"var(--good)":"var(--bad)"}">${d>0?"+":""}${d} in 60 days</span>`:""}</div></div>
+      ${mine?`<button class="btn sm" data-act="tScore" data-v="${t.k}" data-d="-1" aria-label="Lower ${t.n}">−</button>`:""}<span class="num" style="width:26px;text-align:center;font-weight:600">${a.tools[t.k]}</span>${mine?`<button class="btn sm" data-act="tScore" data-v="${t.k}" data-d="1" aria-label="Raise ${t.n}">+</button>`:""}</div>`}).join("")}</div></div>
+  <div class="card" style="display:flex;flex-direction:column;gap:10px"><div class="row between"><h3>Training log</h3><button class="btn sm" data-act="logTrain">+ Log training</button></div>
+    <div class="label">Last 30 days by tool</div>
+    <div style="display:flex;flex-direction:column;gap:5px">${TOOLS.map(t=>`<div class="row small" style="gap:8px;flex-wrap:nowrap"><span style="width:128px;flex:none" class="muted">${t.n}</span><div class="meter grow"><i style="width:${perTool[t.k]/maxT*100}%;background:${coach(t.c).color}"></i></div><span class="num" style="width:16px;text-align:right">${perTool[t.k]}</span></div>`).join("")}</div>
+    <div class="list">${a.train.slice().sort((x,y)=>x.date<y.date?1:-1).slice(0,8).map(l=>{const t=TOOLS.find(x=>x.k===l.tool);return `<div class="item"><span class="dot" style="background:${coach(l.coachId).color}"></span><div class="grow"><div class="small">${dlong(l.date)} · <b>${t.n}</b></div><div class="muted small">${esc(coach(l.coachId).short)} · ${esc(l.drill)}${l.note?" · "+esc(l.note):""}${l.by==="athlete"?" · by athlete":""}</div></div></div>`}).join("")}</div>
+    ${vids.length?`<div class="small muted">${vids.length} finished video review${vids.length>1?"s":""} counted toward tools.</div>`:""}</div></div>
+  <div class="row between"><h3>Measurables</h3><button class="btn sm" data-act="addMeas">+ Add a measurement</button></div>
+  <div class="stats">${Object.entries(a.meas).map(([k,arr])=>{const m=MEAS[k];const d=arr.slice().sort((x,y)=>x.date<y.date?-1:1);const l=d[d.length-1].v,f=d[0].v;const ch=l-f;const self=d[d.length-1].by==="athlete";
+    return `<div class="card"><div class="label">${m.n}</div><div class="stat"><span class="v num">${l}</span><span class="u">${m.u}${d.length>1?` · ${ch>=0?"+":""}${ch.toFixed(m.dec)} since ${dlabel(d[0].date)}`:` · ${dlabel(d[0].date)}`}</span></div>${d.length>1?spark(d.map(x=>x.v),m.better):""}<div class="small muted">${d.length} ${d.length===1?"entry":"entries"}${self?" · last by athlete":""}</div></div>`}).join("")}</div>`;
+}
+function trainSheet(aid){
+  const a=ath(aid);const cid=U.coachView==="all"?"gil":U.coachView;const tk=TOOLS.find(t=>t.c===cid)?.k||"avg";
+  modal(`${sheetHead("Log training",esc(fullname(a)))}
+  <div class="fields"><div class="field"><label for="tr-t">Tool</label><select id="tr-t">${TOOLS.map(t=>`<option value="${t.k}" ${t.k===tk?"selected":""}>${t.n}</option>`).join("")}</select></div>
+  <div class="field"><label for="tr-c">Coach</label><select id="tr-c">${S.coaches.map(c=>`<option value="${c.id}" ${c.id===cid?"selected":""}>${esc(c.name)}</option>`).join("")}</select></div>
+  <div class="field"><label for="tr-d">Date</label><input id="tr-d" type="date" value="${ymd(new Date())}" max="${ymd(new Date())}"></div></div>
+  <div class="field"><label for="tr-w">What you worked on</label><input id="tr-w" placeholder="Short-hop series, backhand"></div>
+  <div class="field"><label for="tr-n">Note (optional)</label><textarea id="tr-n" rows="2"></textarea></div>
+  <div class="row"><button class="btn primary" data-act="trSave" data-v="${aid}">Save</button><button class="btn ghost" data-act="close">Cancel</button></div>`);
+}
+function measSheet(aid){
+  const a=ath(aid);ensureDev(a);
+  modal(`${sheetHead("Add a measurement",esc(fullname(a)))}
+  <div class="fields"><div class="field"><label for="ms-k">Measure</label><select id="ms-k">${Object.entries(MEAS).map(([k,m])=>`<option value="${k}">${m.n} (${m.u})</option>`).join("")}</select></div>
+  <div class="field"><label for="ms-v">Value</label><input id="ms-v" type="number" step="0.01" inputmode="decimal"></div>
+  <div class="field"><label for="ms-d">Date</label><input id="ms-d" type="date" value="${ymd(new Date())}" max="${ymd(new Date())}"></div></div>
+  ${U.mode==="parent"?`<div class="small muted">Shows as “entered by athlete” so coaches know where it came from.</div>`:""}
+  <div class="row"><button class="btn primary" data-act="msSave" data-v="${aid}">Save</button><button class="btn ghost" data-act="close">Cancel</button></div>`);
+}
+
+/* ---------- events ---------- */
+document.addEventListener("click",e=>{
+  const el=e.target.closest("[data-act]");if(!el)return;
+  const act=el.dataset.act,v=el.dataset.v;
+  if(act==="closeScrim"){if(e.target===el)closeModal();return}
+  const A={
+    mode(){U.mode=v;U.athleteId=null;U.videoId=null;U.profTab="overview";U.tab=v==="coach"?"schedule":"book";render();window.scrollTo(0,0)},
+    tab(){U.tab=v;U.athleteId=null;U.videoId=null;U.profTab="overview";render();window.scrollTo(0,0)},
+    day(){U.day=v;render()},
+    week(){const w=addDays(parse(U.week),7*+v);U.week=ymd(w);U.day=ymd(w);render()},
+    close(){closeModal()},
+    newBooking(){bookSheet({})},
+    bookSpot(){bookSheet({coachId:el.dataset.c,serviceId:el.dataset.s,date:el.dataset.d,hour:+el.dataset.h})},
+    bookFor(){bookSheet({coachId:U.coachView==="all"?"gil":U.coachView});pickState.athleteId=v;drawBookSheet()},
+    bkPick(){pickState.athleteId=v;drawBookSheet()},
+    qaOpen(){const q=pickState.q.trim().split(/\s+/);pickState.newA={first:q[0]||"",last:q.slice(1).join(" "),age:"",level:"High School",phone:"",pphone:""};drawBookSheet();const f=$("#qa-first");if(f)f.focus()},
+    qaCancel(){pickState.newA=null;drawBookSheet()},
+    qaSave(){const g=id=>$(id).value.trim();const first=g("#qa-first"),last=g("#qa-last"),age=g("#qa-age");
+      if(!first||!last||!age){Object.assign(pickState.newA,{first,last,age,level:$("#qa-level").value,phone:g("#qa-phone"),pphone:g("#qa-pp")});$("#qa-err").hidden=false;return}
+      const a={id:"a"+uid(),first,last,age:Math.max(5,Math.min(45,+age||5)),level:$("#qa-level").value,pos:"—",school:"—",phone:g("#qa-phone"),email:"",notes:"",bats:"R",throws:"R",alerts:true,coachId:pickState.coachId,contacts:[],tools:Object.fromEntries(TOOLS.map(t=>[t.k,5]))};
+      if(g("#qa-pp"))a.contacts.push({id:uid(),name:"Parent",rel:"Parent",phone:g("#qa-pp"),email:""});
+      S.athletes.push(a);save();pickState.newA=null;pickState.q="";pickState.athleteId=a.id;drawBookSheet();toast(`Added ${fullname(a)} · now pick a time and book`)},
+    bkSave(){bkSave()},
+    openBooking(){bookingSheet(v,U.mode==="parent")},
+    bDone(){const b=S.bookings.find(x=>x.id===v);setStatus(b,"completed");closeModal();render();toast("Marked done")},
+    bUndo(){const b=S.bookings.find(x=>x.id===v);setStatus(b,"booked");closeModal();render();toast("Back to booked")},
+    bCancel(){cancelSheet(v,el.dataset.p==="1")},
+    cFree(){const b=S.bookings.find(x=>x.id===v);setStatus(b,"cancelled");closeModal();render();toast("Cancelled · spot reopened")},
+    cLate(){const b=S.bookings.find(x=>x.id===v);setStatus(b,"late");closeModal();render();toast(b.packId?"Cancelled · 1 session used from the pack":svc(b.serviceId).single==null?"Cancelled · no price set, nothing charged":`Cancelled · ${money(svc(b.serviceId).single)} owed`)},
+    cForgive(){const b=S.bookings.find(x=>x.id===v);setStatus(b,"late",true);setStatus(b,"forgiven");closeModal();render();toast("Cancelled · forgiven, nothing charged")},
+    bForgive(){const b=S.bookings.find(x=>x.id===v);setStatus(b,"forgiven");closeModal();render();toast("Forgiven · session given back")},
+    stopRec(){const b=S.bookings.find(x=>x.id===v);const r=S.recurring.find(x=>x.id===b.recurringId);r.end=b.date;
+      S.bookings.forEach(x=>{if(x.recurringId===r.id&&x.date>=b.date&&x.status==="booked")x.status="cancelled"});save();closeModal();render();toast("Weekly booking stopped")},
+    profileOf(){closeModal();U.mode="coach";U.tab="athletes";U.athleteId=v;U.profTab="overview";render();window.scrollTo(0,0)},
+    back(){U.athleteId=null;render()},
+    profTab(){U.profTab=v;render()},
+    block(){S.blocks.push({id:uid(),coachId:el.dataset.c,date:el.dataset.d,hour:+el.dataset.h});save();render();toast("Marked unavailable")},
+    unblock(){S.blocks=S.blocks.filter(x=>x.id!==v);save();render();toast("Reopened")},
+    extraHours(){extraSheet()},
+    pastSpot(){toast("That time already passed. Pick a later day or tap › for next week")},
+    snAdd(){snAdd(v,el.dataset.p==="1",el)},
+    snDel(){if(el.dataset.sure){const b=S.bookings.find(x=>x.id===el.dataset.b);const n=b.notes.find(x=>x.id===v);if(n&&n.img){IDB.del(n.img);if(urlCache[n.img]){URL.revokeObjectURL(urlCache[n.img]);delete urlCache[n.img]}}b.notes=b.notes.filter(x=>x.id!==v);save();bookingSheet(b.id,el.dataset.p==="1");render();toast("Note deleted")}else{el.dataset.sure=1;el.textContent="Tap again to delete"}},
+    snView(){const b=S.bookings.find(x=>x.id===el.dataset.b);const n=b.notes.find(x=>x.id===v);const asP=U.mode==="parent";
+      modal(`${sheetHead("Session photo",`${dlong(b.date)} · ${hlabel(b.hour)}`)}<img data-img="${n.img}" alt="Session photo" style="width:100%;border-radius:10px;border:1px solid var(--line)">${n.text?`<div>${esc(n.text)}</div>`:""}<button class="btn" data-act="snBack" data-v="${b.id}" data-p="${asP?1:0}" style="align-self:flex-start">‹ Back to session</button>`);hydrateImgs()},
+    snBack(){bookingSheet(v,el.dataset.p==="1")},
+    exLevel(){const L=U.ex.levels;const i=L.indexOf(v);i<0?L.push(v):L.splice(i,1);drawExtra()},
+    svLevel(){const sv=svc(v);sv.levels=sv.levels||[];const l=el.dataset.l;const i=sv.levels.indexOf(l);i<0?sv.levels.push(l):sv.levels.splice(i,1);save();render();toast("Saved")},
+    famSwitch(){U.showFam=!U.showFam;render()},
+    kid(){U.family=v;U.videoId=null;render()},
+    exSave(){const x=U.ex;let added=0;for(let h=x.from;h<x.to;h++){if(isOpenHour(x.coachId,x.date,h))continue;{let mn=x.minAge===""?null:Math.max(0,Math.round(+x.minAge)),mx=x.maxAge===""?null:Math.max(0,Math.round(+x.maxAge));if(mn!=null&&mx!=null&&mn>mx)[mn,mx]=[mx,mn];S.extra.push({id:uid(),coachId:x.coachId,date:x.date,hour:h,note:x.note,minAge:mn,maxAge:mx,levels:x.levels.slice()})}added++}
+      save();closeModal();U.day=x.date;U.week=ymd(mondayOf(parse(x.date)));render();toast(added?`Opened ${added} extra hour${added>1?"s":""} · ${dlabel(x.date)}`:"Those hours were already open")},
+    closeExtra(){const c=el.dataset.c,d=el.dataset.d,h=+el.dataset.h;S.extra=S.extra.filter(x=>!(x.coachId===c&&x.date===d&&x.hour===h));S.blocks=S.blocks.filter(x=>!(x.coachId===c&&x.date===d&&x.hour===h));save();render();toast("Extra hour closed")},
+    broadcast(){broadcastSheet(el.dataset.s,el.dataset.d,+el.dataset.h)},
+    bcLevel(){const L=U.bc.levels;const i=L.indexOf(v);i<0?L.push(v):L.splice(i,1);drawBroadcast()},
+    bcSend(){const n=el.textContent.replace(/\D/g,"");S.broadcasts.push({at:new Date().toISOString(),...U.bc,count:+n});save();closeModal();toast(`Demo: would text ${n} athlete${n==="1"?"":"s"}`)},
+    fLevel(){const i=U.levels.indexOf(v);i<0?U.levels.push(v):U.levels.splice(i,1);render()},
+    fAlerts(){U.alertsOnly=!U.alertsOnly;render()},
+    fClear(){U.q="";U.levels=[];U.ageMin="";U.ageMax="";U.alertsOnly=false;render()},
+    addAthlete(){athleteSheet(null)},
+    editAthlete(){athleteSheet(v)},
+    afSave(){const f=$("#af");const d=Object.fromEntries(new FormData(f));
+      if(!d.first.trim()||!d.last.trim()||!d.age){$("#af-err").hidden=false;return}
+      if(v){Object.assign(ath(v),{first:d.first.trim(),last:d.last.trim(),age:+d.age,level:d.level,pos:d.pos,school:d.school,phone:d.phone,email:d.email,notes:d.notes});save();closeModal();render();toast("Saved")}
+      else{const a={id:"a"+uid(),first:d.first.trim(),last:d.last.trim(),age:+d.age,level:d.level,pos:d.pos||"—",school:d.school||"—",phone:d.phone||"",email:d.email||"",notes:d.notes,bats:"R",throws:"R",alerts:true,coachId:U.coachView==="all"?"gil":U.coachView,contacts:[],tools:Object.fromEntries(TOOLS.map(t=>[t.k,5]))};
+        if(d.pname)a.contacts.push({id:uid(),name:d.pname,rel:d.prel||"Parent",phone:d.pphone||"",email:""});
+        S.athletes.push(a);save();closeModal();U.athleteId=a.id;U.tab="athletes";render();toast(`Added ${fullname(a)}`)}},
+    addContact(){contactSheet(v)},
+    ctSave(){const n=$("#ct-n").value.trim();if(!n){$("#ct-n").focus();return}ath(v).contacts.push({id:uid(),name:n,rel:$("#ct-r").value.trim()||"Contact",phone:$("#ct-p").value.trim(),email:$("#ct-e").value.trim()});save();closeModal();render();toast("Contact added")},
+    sellPack(){sellSheet(v)},
+    spSave(){const s=svc(U.sell.sid);const t=ymd(new Date());S.packs.push({id:"p"+uid(),athleteId:U.sell.aid,serviceId:s.id,total:s.packSize,usedBefore:0,price:s.packPrice,purchased:t,expires:addMonths(t,s.expiryMonths),paid:el.dataset.paid==="1",pending:false});
+      save();closeModal();render();toast(`${s.packSize}-pack added for ${fullname(ath(U.sell.aid))}`)},
+    markPaid(){const k=el.dataset.k;const ref=k==="pack"?S.packs.find(p=>p.id===v):k==="video"?S.videos.find(x=>x.id===v):S.bookings.find(b=>b.id===v);ref.paid=true;ref.pending=false;save();render();toast("Marked paid")},
+    addService(){S.services.push({id:"s"+uid(),coachId:v,name:"New session",single:null,packSize:null,packPrice:null,expiryMonths:6,spots:null,online:false,sched:true});save();render()},
+    reset(){if(el.dataset.sure){try{localStorage.removeItem(KEY)}catch(e){}IDB.wipe();Object.keys(memBlobs).forEach(k=>delete memBlobs[k]);Object.keys(urlCache).forEach(k=>{URL.revokeObjectURL(urlCache[k]);delete urlCache[k]});mem=null;S=seed();save();U.athleteId=null;render();toast("Demo data reset")}else{el.dataset.sure=1;el.textContent="Tap again to reset"}},
+    pBook(){const s=svc(el.dataset.s);const d=el.dataset.d,h=+el.dataset.h;const a=famAth();const p=activePack(a.id,s.id,d);
+      modal(`${sheetHead("Confirm booking",`${dlong(d)} · ${hlabel(h)}–${hend(h)}`)}
+      <dl class="kv"><dt>Athlete</dt><dd>${esc(fullname(a))}</dd><dt>Session</dt><dd>${esc(s.name)}</dd><dt>Payment</dt><dd>${p?`1 session from your pack (${packLeft(p)} left)`:`${money(s.single)} by Zelle`}</dd></dl>
+      <div class="notice warn">Cancellation policy: cancel at least 24 hours before your session. Inside 24 hours, the session counts as used.</div>
+      <label class="row small"><input type="checkbox" id="pb-ok"> I understand the 24-hour policy</label>
+      <div class="row"><button class="btn primary" data-act="pBookOk" data-s="${s.id}" data-d="${d}" data-h="${h}">Book it</button><button class="btn ghost" data-act="close">Cancel</button></div>`)},
+    pBookOk(){if(!$("#pb-ok").checked){$("#pb-ok").focus();toast("Please check the 24-hour policy box");return}
+      const s=svc(el.dataset.s),d=el.dataset.d,h=+el.dataset.h;if(openSpots(s.id,d,h)<=0){closeModal();render();toast("Sorry, that spot was just taken");return}
+      if(!fits(famAth(),limFor(s.id,d,h))){closeModal();render();toast("This session is for a different age group");return}
+      S.bookings.push(mkBooking(U.family,s.coachId,s.id,d,h,null));save();closeModal();render();toast(`Booked · ${dlabel(d)} ${hlabel(h)}`)},
+    pSent(){owed(U.family).forEach(o=>o.ref.pending=true);save();render();toast("Thanks · your coach will confirm")},
+    pBuy(){const s=svc("hit");const t=ymd(new Date());S.packs.push({id:"p"+uid(),athleteId:U.family,serviceId:s.id,total:s.packSize,usedBefore:0,price:s.packPrice,purchased:t,expires:addMonths(t,s.expiryMonths),paid:false,pending:false});save();render();toast(`Pack added · send ${money(s.packPrice)} by Zelle`)},
+    vFilter(){U.vFilter=v;render()},
+    openVideo(){closeModal();U.vReturn=U.mode==="coach"&&U.tab==="athletes"&&U.athleteId?U.athleteId:null;const vv=S.videos.find(x=>x.id===v);if(U.mode==="coach"){U.tab="videos";if(vv.status==="waiting"){vv.status="review";save()}}else U.tab="video";U.videoId=v;render();window.scrollTo(0,0)},
+    vBack(){AN.cleanup&&AN.cleanup();U.videoId=null;if(U.vReturn){U.tab="athletes";U.athleteId=U.vReturn;U.profTab="video";U.vReturn=null}render()},
+    uploadVideo(){uploadSheet()},
+    upSave(){el.disabled=true;upSave()},
+    anPlay(){const vid=$("#vid");if(!vid)return;if(vid.paused){AN.lastT=vid.currentTime;vid.play().catch(()=>toast("Tap play again"))}else vid.pause()},
+    anStep(){const vid=$("#vid");if(!vid)return;vid.pause();vid.currentTime=Math.max(0,Math.min(vid.duration||0,vid.currentTime+(+v)/30));AN.lastT=vid.currentTime;AN.draft.length||(AN.shown=(AN.v.notes.find(n=>Math.abs(n.t-vid.currentTime)<0.05)||{}).id||null);setTimeout(()=>{AN.sync();AN.list();AN.draw()},60)},
+    anRate(){const vid=$("#vid");if(!vid)return;vid.playbackRate=+v;document.querySelectorAll('[data-act="anRate"]').forEach(b=>b.classList.toggle("on",b===el))},
+    anTool(){AN.tool=v;AN.drawing=null;AN.angleThird=false;document.querySelectorAll('[data-act="anTool"]').forEach(b=>b.classList.toggle("on",b===el));if(v==="angle")toast("Angle: drag along one line, then tap the third point")},
+    anColor(){AN.color=v;document.querySelectorAll('[data-act="anColor"]').forEach(b=>b.classList.toggle("on",b===el))},
+    anUndo(){AN.draft.pop();AN.drawing=null;AN.draw()},
+    anClear(){AN.draft=[];AN.drawing=null;AN.draw()},
+    anSave(){anSave()},
+    anJump(){const n=AN.v.notes.find(x=>x.id===v);const vid=$("#vid");if(vid){vid.pause();vid.currentTime=n.t;AN.lastT=n.t}AN.shown=n.id;AN.draft=[];AN.list();AN.draw();AN.sync&&setTimeout(AN.sync,60)},
+    anEdit(){const n=AN.v.notes.find(x=>x.id===v);const vid=$("#vid");if(vid){vid.pause();vid.currentTime=n.t}AN.editing=n.id;AN.shown=null;AN.draft=(n.shapes||[]).map(s=>({...s,pts:s.pts.map(p=>p.slice())}));$("#anText").value=n.text;$("#anCancel").hidden=false;$("#anSaveBtn").textContent="Update note";$("#anComposeLbl").textContent=`Editing note at ${fmtT(n.t)}`;AN.draw()},
+    anCancelEdit(){AN.editing=null;AN.draft=[];$("#anText").value="";$("#anCancel").hidden=true;$("#anSaveBtn").textContent="Save note";AN.draw();AN.sync&&AN.sync()},
+    anDel(){if(el.dataset.sure){AN.v.notes=AN.v.notes.filter(x=>x.id!==v);if(AN.shown===v)AN.shown=null;save();AN.list();AN.draw();toast("Note deleted")}else{el.dataset.sure=1;el.textContent="Tap again to delete"}},
+    anDone(){const vv=S.videos.find(x=>x.id===v);vv.status="ready";if(vv.tool){const a=ath(vv.athleteId);ensureDev(a);if(!a.train.some(x=>x.videoId===vv.id))a.train.push({id:uid(),videoId:vv.id,date:ymd(new Date()),tool:vv.tool,coachId:vv.coachId,drill:"Video review: "+vv.title,note:""})}save();render();toast("Review sent to the family")},
+    anReopen(){const vv=S.videos.find(x=>x.id===v);vv.status="review";save();render()},
+    anDelete(){if(el.dataset.sure){const vv=S.videos.find(x=>x.id===v);IDB.del(vv.blobKey);if(urlCache[vv.id]){URL.revokeObjectURL(urlCache[vv.id]);delete urlCache[vv.id]}S.videos=S.videos.filter(x=>x.id!==v);AN.cleanup&&AN.cleanup();U.videoId=null;save();render();toast("Video deleted")}else{el.dataset.sure=1;el.textContent="Tap again to delete"}},
+    tScore(){const a=ath(U.athleteId||U.family);ensureDev(a);a.tools[v]=Math.max(1,Math.min(10,a.tools[v]+(+el.dataset.d)));save();render()},
+    logTrain(){trainSheet(U.mode==="coach"?U.athleteId:U.family)},
+    trSave(){const a=ath(v);ensureDev(a);const w=$("#tr-w").value.trim();if(!w){$("#tr-w").focus();return}a.train.push({id:uid(),date:($("#tr-d").value&&$("#tr-d").value<=ymd(new Date()))?$("#tr-d").value:ymd(new Date()),tool:$("#tr-t").value,coachId:$("#tr-c").value,drill:w,note:$("#tr-n").value.trim(),by:U.mode==="parent"?"athlete":"coach"});save();closeModal();render();toast("Training logged")},
+    addMeas(){measSheet(U.mode==="coach"?U.athleteId:U.family)},
+    msSave(){const a=ath(v);ensureDev(a);const k=$("#ms-k").value;const val=parseFloat($("#ms-v").value);if(!isFinite(val)||val<=0){$("#ms-v").focus();toast("Enter a number");return}(a.meas[k]=a.meas[k]||[]).push({date:($("#ms-d").value&&$("#ms-d").value<=ymd(new Date()))?$("#ms-d").value:ymd(new Date()),v:+val.toFixed(MEAS[k].dec),by:U.mode==="parent"?"athlete":"coach"});save();closeModal();render();toast(`${MEAS[k].n} saved`)},
+    copy(){const val=v;const done=()=>toast("Copied");try{navigator.clipboard.writeText(val).then(done,()=>selectZ())}catch(err){selectZ()}}
+  };
+  if(A[act])A[act]();
+});
+function selectZ(){const z=$("#zto");if(!z)return;const r=document.createRange();r.selectNodeContents(z);const s=getSelection();s.removeAllRanges();s.addRange(r);toast("Selected · copy it")}
+document.addEventListener("keydown",e=>{
+  if(e.key==="Escape"&&$("#modal").innerHTML)closeModal();
+  if((e.key==="Enter"||e.key===" ")&&e.target.matches('[role="button"][data-act]')){e.preventDefault();e.target.click()}
+});
+document.addEventListener("change",e=>{
+  const el=e.target;const ch=el.dataset.ch;
+  if(el.id==="who"){if(U.mode==="coach")U.coachView=el.value;else{U.family=famMembers(el.value)[0].id;U.showFam=false}U.athleteId=null;U.videoId=null;render();return}
+  if(!ch)return;
+  if(ch==="bkCoach"){pickState.coachId=el.value;pickState.serviceId=null;drawBookSheet()}
+  if(ch==="bkSvc"){pickState.serviceId=el.value;drawBookSheet()}
+  if(ch==="bkDate"){if(el.value){pickState.date=el.value;ensureWeek(ymd(mondayOf(parse(el.value))))}drawBookSheet()}
+  if(ch==="bkHour"){pickState.hour=el.value?+el.value:null;drawBookSheet()}
+  if(ch==="bkRep"){pickState.repeat=el.checked}
+  if(ch==="alerts"){ath(el.dataset.v).alerts=el.checked;save();render();toast(el.checked?"Open spot alerts on":"Open spot alerts off")}
+  if(ch==="anStop"){AN.stopAtNotes=el.checked}
+  if(ch==="anTag"){const vv=S.videos.find(x=>x.id===el.dataset.v);vv.tool=el.value;save();toast("Saved")}
+  if(ch==="upA"){U.up.aid=el.value;drawUpload()}
+  if(ch==="upF"){U.up.file=el.files[0]||null;if(U.up.file&&!U.up.title)U.up.title=U.up.file.name.replace(/.[^.]+$/,"");drawUpload()}
+  if(ch==="upC"){U.up.coachId=el.value}
+  if(ch==="upTool"){U.up.tool=el.value}
+  if(ch==="snFile"){const f=el.files[0];$("#sn-fname").textContent=f?f.name:""}
+  if(ch==="exC"){U.ex.coachId=el.value;drawExtra()}
+  if(ch==="exD"){if(el.value)U.ex.date=el.value;drawExtra()}
+  if(ch==="exF"){U.ex.from=+el.value;if(U.ex.to<=U.ex.from)U.ex.to=U.ex.from+1;drawExtra()}
+  if(ch==="exT"){U.ex.to=+el.value;drawExtra()}
+  if(ch==="spA"){U.sell.aid=el.value;drawSell()}
+  if(ch==="spS"){U.sell.sid=el.value;drawSell()}
+  if(ch==="sv"){const s=svc(el.dataset.v);const f=el.dataset.f;
+    if(f==="online")s.online=el.checked&&!!s.spots;
+    else if(f==="name")s.name=el.value.trim()||s.name;
+    else{const n=el.value===""?null:Math.max(0,Math.round(+el.value));
+      if(f==="expiryMonths")s[f]=Math.max(1,n||6);else if((f==="minAge"||f==="maxAge")&&n!=null&&s[f==="minAge"?"maxAge":"minAge"]!=null&&(f==="minAge"?n>s.maxAge:n<s.minAge)){s.minAge=Math.min(n,s[f==="minAge"?"maxAge":"minAge"]);s.maxAge=Math.max(n,s[f==="minAge"?"maxAge":"minAge"]);toast("Swapped so youngest is below oldest")}else if(f==="spots"){s.spots=n||null;if(!s.spots)s.online=false}else s[f]=n}
+    save();render();toast("Saved")}
+  if(ch==="fac"){const val=el.value.trim();if(val)S.facility[el.dataset.f]=val;save();render();toast("Saved")}
+});
+document.addEventListener("input",e=>{
+  const el=e.target;const k=el.dataset.in;if(!k)return;
+  const keep=()=>{const id=el.id,pos=el.selectionStart;requestAnimationFrame(()=>{const n=document.getElementById(id);if(n){n.focus();try{n.setSelectionRange(pos,pos)}catch(x){}}})};
+  if(k==="fQ"){U.q=el.value;render();keep()}
+  if(k==="fMin"){U.ageMin=el.value;render();keep()}
+  if(k==="fMax"){U.ageMax=el.value;render();keep()}
+  if(k==="bkQ"){pickState.q=el.value;drawBookSheet();keep()}
+  if(k==="exN"){U.ex.note=el.value}
+  if(k==="exMin"){U.ex.minAge=el.value}
+  if(k==="exMax"){U.ex.maxAge=el.value}
+  if(k==="upT"){U.up.title=el.value}
+  if(k==="upN"){U.up.note=el.value}
+  if(k==="bcMin"){U.bc.ageMin=el.value;drawBroadcast();keep()}
+  if(k==="bcMax"){U.bc.ageMax=el.value;drawBroadcast();keep()}
+});
+
+/* ---------- boot ---------- */
+S=load();
+if(!S||S.v!==4){S=seed();save()}
+["extra","blocks","broadcasts","videos","recurring","packs","bookings"].forEach(k=>{if(!Array.isArray(S[k]))S[k]=[]});if(!S.gen)S.gen={};
+initDates();
+render();
+window.__dyn={get S(){return S},U,openSpots,packLeft,activePack,lateCounts,owed,setStatus,hoursUntil};
+})();
+</script>
+
+</body>
+</html>
