@@ -109,25 +109,28 @@ const Q=[
    {t:"Pay about $25 a month for storage",pro:"Full quality, no time limit, no worrying about space.",con:"$25 a month. About 3 swing-plan families pay for it."},
    {t:"Start free, switch to paid when it fills up",pro:"No cost until the app proves itself.",con:"You'll get a heads-up when space runs low and decide then."}]},
  {sec:"Emails and your web name"},
- {id:"email",q:"Sign-in emails to parents: how should they go out?",why:"Parents sign in with a link the app emails them. The free built-in email only sends 2 an hour, so we need a sender.",info:[
-   ["How to set up the free Gmail (about 10 minutes)",["1. Make a new Gmail for the business at accounts.google.com, for example dynastyhitting.app@gmail.com.","2. In that Gmail, go to Manage your Google Account, then Security, and turn on 2-Step Verification.","3. In the search bar at the top of the account page, type App passwords. Create one named Dynasty app. Google shows a 16-letter code.","4. Tell Luis the Gmail address and code on your call, or send them on WhatsApp (not a regular text). The code only lets the app send email, and you can delete it anytime."]]],
+ {id:"email",q:"How should parents get their sign-in link?",why:"Parents sign in by tapping a link, with no password. The app can't send from your Outlook on its own (Microsoft blocks that for apps), so pick how the link gets to them. Most families only need it once per phone.",info:[
+   ["How the free invite works",["1. You add a family in the app (or a parent asks to join).","2. Tap Send invite. Pick WhatsApp, and the message opens ready to send. Or pick Copy and paste it into an email from your Outlook.","3. The parent taps the link and is in. They stay signed in on that phone.","New phone or logged out? Tap Send invite again."]],
+   ["How to set up the free Gmail (about 10 minutes)",["1. Make a new Gmail for the business at accounts.google.com, for example dynastyhitting.app@gmail.com.","2. In that Gmail, go to Manage your Google Account, then Security, and turn on 2-Step Verification.","3. In the search bar at the top of the account page, type App passwords. Create one named Dynasty app. Google shows a 16-letter code.","4. Send Luis the Gmail address and code on WhatsApp (not a regular text). The code only lets the app send email, and you can delete it anytime."]]],
  opts:[
-   {t:"A free Gmail just for the app",pick:true,pro:"Costs nothing. About 10 minutes to set up.",con:"Emails come from a Gmail address, not your own web name."},
-   {t:"Get a web name and email service now",pro:"Emails come from your own name (for example, hello@dynastyhitting.com). Looks professional.",con:"About $10–15 a year, plus a few more setup steps."}]},
+   {t:"I send the invite myself (free)",pick:true,pro:"Free, nothing to set up. It comes from your own WhatsApp or Outlook, so parents trust it.",con:"New families can't join until you send it. Lost logins come to you."},
+   {t:"A free Gmail sends them automatically",pro:"Parents can sign in anytime without you.",con:"About 10 minutes of setup. Emails come from a Gmail address."},
+   {t:"Web name + email service",pro:"Automatic, from your own name (for example, hello@dynastyhitting.com).",con:"About $10–15 a year, plus a few more setup steps."}]},
  {id:"webname",q:"Your own web name (like dynastyhitting.com)",why:"Good news: you can always add one later. Nothing changes for parents except a nicer link.",opts:[
    {t:"Later, keep the free link for now",pick:true,pro:"No cost while you try the app.",con:""},
    {t:"Now",pro:"Your own name from day one. Type the name you'd like below and we'll check if it's free.",con:"About $10–15 a year."}],more:"Web name you'd like (optional)"},
  {sec:"Set up your accounts"},
- {id:"supabase",q:"Create your free storage account (Supabase)",why:"This is where your info will live. You own it. About 10 minutes. Tap the gray line for the steps.",info:[
-   ["Step by step (screens may look a little different)",["1. Go to supabase.com and tap Start your project.","2. Sign up with your Dynasty Outlook email and a password. Save the password somewhere safe.","3. Open the confirmation email in your Outlook and tap the link.","4. Create an organization. Name: Dynasty Performance Center. Plan: Free.","5. Tap New project. Name: dynasty-app. Database password: tap Generate, then copy it and save it. Region: East US.","6. Wait about 2 minutes while it sets up.","7. Give Luis access: open Organization settings, then Team, then Invite. Enter the email Luis gives you and pick Owner. That way you never have to share your password.","8. Text Luis “done.”","If the invite button isn't there, give Luis your login on the call, and change your password after he's finished."]]],
+ {id:"supabase",q:"Create your free storage account (Supabase)",why:"This is where your info will live. You own it. About 10 minutes. The steps are right below.",infoOpen:true,info:[
+   ["Step by step (screens may look a little different)",["1. Go to supabase.com and tap Start your project.","2. Sign up with your Dynasty Outlook email and a password. Save the password somewhere safe.","3. Open the confirmation email in your Outlook and tap the link.","4. Create an organization. Name: Dynasty Performance Center. Plan: Free.","5. Tap New project. Name: dynasty-app. Database password: tap Generate, then copy it and save it. Region: East US.","6. Wait about 2 minutes while it sets up.","7. Give Luis access: open Organization settings, then Team, then Invite. Enter the email Luis gives you and pick Owner. That way you never have to share your password.","8. Let Luis know it's done.","If the invite button isn't there, send Luis your login on WhatsApp (not a regular text), and change your password after he's finished."]]],
  opts:[
-   {t:"I'll do it myself with the steps",pro:"Done whenever you have 10 minutes.",con:"If something looks different, text Luis."},
-   {t:"Let's do it together on a call",pick:true,pro:"Luis walks you through it. About 15 minutes.",con:"You need to find a time."}],more:"Good times for a call (optional)"},
- {id:"whatsapp",q:"Turn on your WhatsApp alerts",why:"This lets the app message you on WhatsApp when a parent requests a session. It's free and takes about 2 minutes.",info:[
-   ["What you'll do",["1. Luis will text you a phone number and a short message.","2. Save the number in your contacts and send it that message on WhatsApp.","3. You get a reply with a code. Text that code to Luis.","That's it. The code only lets the app send messages to you."]]],
+   {t:"I'll follow the steps here",pick:true,pro:"Do it whenever you have 10 minutes.",con:"If a screen looks different, message Luis."},
+   {t:"Email me the steps",pro:"Easy to follow on your computer.",con:""},
+   {t:"WhatsApp me the steps",pro:"Easy to follow on your phone.",con:""}]},
+ {id:"whatsapp",q:"Turn on your WhatsApp alerts",why:"This lets the app message you on WhatsApp when a parent requests a session. It's free and takes about 2 minutes.",infoOpen:true,info:[
+   ["What you'll do",["1. Luis sends you a phone number and a short message.","2. Save the number in your contacts and send it that message on WhatsApp.","3. You get a reply with a code. Send that code to Luis on WhatsApp.","That's it. The code only lets the app send messages to you."]]],
  opts:[
-   {t:"OK, send me the number",pick:true,pro:"Alerts work from day one.",con:""},
-   {t:"Do it on our call",pro:"One less thing to do alone.",con:""}]},
+   {t:"Send me the number on WhatsApp",pick:true,pro:"Alerts work from day one.",con:""},
+   {t:"Email me the number",pro:"",con:""}]},
  {sec:"Last one"},
  {id:"else",q:"Anything else before we build?",why:"Anything missing, or anything you're not sure about.",text:true}
 ];
@@ -149,7 +152,7 @@ function draw(){
   document.getElementById("qs").innerHTML=Q.map(x=>{
     if(x.sec)return `<h2>${esc(x.sec)}</h2>`;
     n++;const a=A[x.id]||{};const done=x.text?!!(a.note||"").trim():a.pick!=null;
-    return `<section class="q ${done?"done":""}" id="q-${x.id}"><h3>${n}. ${esc(x.q)}</h3><p class="why">${esc(x.why)}</p>${x.info?x.info.map(([h,ps])=>`<details class="info"><summary>${esc(h)}</summary>${ps.map(p=>`<p>${esc(p)}</p>`).join("")}</details>`).join(""):""}
+    return `<section class="q ${done?"done":""}" id="q-${x.id}"><h3>${n}. ${esc(x.q)}</h3><p class="why">${esc(x.why)}</p>${x.info?x.info.map(([h,ps])=>`<details class="info" ${x.infoOpen?"open":""}><summary>${esc(h)}</summary>${ps.map(p=>`<p>${esc(p)}</p>`).join("")}</details>`).join(""):""}
     ${x.text?"":x.opts.map((o,i)=>`<button class="opt ${a.pick===i?"on":""}" data-q="${x.id}" data-i="${i}" aria-pressed="${a.pick===i}">
       <span class="t"><span class="lbl">${esc(o.t)}</span>${o.pick?'<span class="pk">SUGGESTED</span>':""}</span>
       ${o.pro||o.con?`<span class="pc">${o.pro?`<span>+ ${esc(o.pro)}</span>`:""}${o.con?`<span>– ${esc(o.con)}</span>`:""}</span>`:""}</button>`).join("")}
