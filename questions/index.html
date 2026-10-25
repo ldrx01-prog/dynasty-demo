@@ -42,6 +42,9 @@ details{background:var(--panel);border:1px solid var(--line);border-radius:12px;
 summary{cursor:pointer;font-weight:600;padding:12px 0;list-style-position:outside}
 .cbtn{background:none;border:0;padding:8px 0 0;color:var(--teal);font:inherit;font-size:14px;font-weight:600;cursor:pointer;min-height:36px}
 .cbox{font-size:15px}
+.opt .steps{display:block;margin-top:8px;padding:8px 10px;background:#fff;border:1px solid var(--line);border-radius:8px;color:var(--ink)}
+.opt .steps b{display:block;color:var(--teal);margin-bottom:2px}
+.opt .steps span{margin:3px 0}
 .info{background:#F1F4F2;border:1px solid var(--line);border-radius:10px;padding:0 12px;margin:6px 0}
 .info summary{font-size:14px;color:var(--teal);padding:9px 0}
 .info p{font-size:14px;margin:0 0 9px}
@@ -109,13 +112,10 @@ const Q=[
    {t:"Pay about $25 a month for storage",pro:"Full quality, no time limit, no worrying about space.",con:"$25 a month. About 3 swing-plan families pay for it."},
    {t:"Start free, switch to paid when it fills up",pro:"No cost until the app proves itself.",con:"You'll get a heads-up when space runs low and decide then."}]},
  {sec:"Emails and your web name"},
- {id:"email",q:"How should parents get their sign-in link?",why:"Parents sign in by tapping a link, with no password. The app can't send from your Outlook on its own (Microsoft blocks that for apps), so pick how the link gets to them. Most families only need it once per phone.",info:[
-   ["How the free invite works",["1. You add a family in the app (or a parent asks to join).","2. Tap Send invite. Pick WhatsApp, and the message opens ready to send. Or pick Copy and paste it into an email from your Outlook.","3. The parent taps the link and is in. They stay signed in on that phone.","New phone or logged out? Tap Send invite again."]],
-   ["How to set up the free Gmail (about 10 minutes)",["1. Make a new Gmail for the business at accounts.google.com, for example dynastyhitting.app@gmail.com.","2. In that Gmail, go to Manage your Google Account, then Security, and turn on 2-Step Verification.","3. In the search bar at the top of the account page, type App passwords. Create one named Dynasty app. Google shows a 16-letter code.","4. Send Luis the Gmail address and code on WhatsApp (not a regular text). The code only lets the app send email, and you can delete it anytime."]]],
- opts:[
-   {t:"I send the invite myself (free)",pick:true,pro:"Free, nothing to set up. It comes from your own WhatsApp or Outlook, so parents trust it.",con:"New families can't join until you send it. Lost logins come to you."},
-   {t:"A free Gmail sends them automatically",pro:"Parents can sign in anytime without you.",con:"About 10 minutes of setup. Emails come from a Gmail address."},
-   {t:"Web name + email service",pro:"Automatic, from your own name (for example, hello@dynastyhitting.com).",con:"About $10–15 a year, plus a few more setup steps."}]},
+ {id:"email",q:"How should parents get their sign-in link?",why:"Parents sign in by tapping a link, with no password. The app can't send from your Outlook on its own (Microsoft blocks that for apps), so pick how the link gets to them. Tap an answer to see its steps.",opts:[
+   {t:"I send the invite myself (free)",pick:true,pro:"Free, nothing to set up. It comes from your own WhatsApp or Outlook, so parents trust it.",con:"New families can't join until you send it. Lost logins come to you.",steps:["Add the family in the app (or a parent asks to join).","Tap Send invite.","Pick WhatsApp, and the message opens ready to send. Or pick Copy and paste it into an email from your Outlook.","The parent taps the link, then taps Sign in. They stay signed in on that phone.","New phone or logged out? Tap Send invite again."]},
+   {t:"A free Gmail sends them automatically",pro:"Parents can sign in anytime without you.",con:"About 10 minutes of setup. Emails come from a Gmail address.",steps:["Make a new Gmail for the business at accounts.google.com, for example dynastyhitting.app@gmail.com.","In that Gmail, go to Manage your Google Account, then Security, and turn on 2-Step Verification.","In the search bar at the top of the account page, type App passwords. Create one named Dynasty app. Google shows a 16-letter code.","Send Luis the Gmail address and code on WhatsApp (not a regular text). The code only lets the app send email, and you can delete it anytime."]},
+   {t:"Web name + email service",pro:"Automatic, from your own name (for example, hello@dynastyhitting.com).",con:"About $10–15 a year, plus a few more setup steps.",steps:["Type the web name you'd like in the box below.","Luis checks that it's available and sends you the link to buy it in your name (about $10–15 a year).","Luis connects it to the app and the email service. You don't touch any settings."]}],more:"Web name you'd like, if you picked that (optional)"},
  {id:"webname",q:"Your own web name (like dynastyhitting.com)",why:"Good news: you can always add one later. Nothing changes for parents except a nicer link.",opts:[
    {t:"Later, keep the free link for now",pick:true,pro:"No cost while you try the app.",con:""},
    {t:"Now",pro:"Your own name from day one. Type the name you'd like below and we'll check if it's free.",con:"About $10–15 a year."}],more:"Web name you'd like (optional)"},
@@ -123,14 +123,12 @@ const Q=[
  {id:"supabase",q:"Create your free storage account (Supabase)",why:"This is where your info will live. You own it. About 10 minutes. The steps are right below.",infoOpen:true,info:[
    ["Step by step (screens may look a little different)",["1. Go to supabase.com and tap Start your project.","2. Sign up with your Dynasty Outlook email and a password. Save the password somewhere safe.","3. Open the confirmation email in your Outlook and tap the link.","4. Create an organization. Name: Dynasty Performance Center. Plan: Free.","5. Tap New project. Name: dynasty-app. Database password: tap Generate, then copy it and save it. Region: East US.","6. Wait about 2 minutes while it sets up.","7. Give Luis access: open Organization settings, then Team, then Invite. Enter the email Luis gives you and pick Owner. That way you never have to share your password.","8. Let Luis know it's done.","If the invite button isn't there, send Luis your login on WhatsApp (not a regular text), and change your password after he's finished."]]],
  opts:[
-   {t:"I'll follow the steps here",pick:true,pro:"Do it whenever you have 10 minutes.",con:"If a screen looks different, message Luis."},
-   {t:"Email me the steps",pro:"Easy to follow on your computer.",con:""},
-   {t:"WhatsApp me the steps",pro:"Easy to follow on your phone.",con:""}]},
- {id:"whatsapp",q:"Turn on your WhatsApp alerts",why:"This lets the app message you on WhatsApp when a parent requests a session. It's free and takes about 2 minutes.",infoOpen:true,info:[
-   ["What you'll do",["1. Luis sends you a phone number and a short message.","2. Save the number in your contacts and send it that message on WhatsApp.","3. You get a reply with a code. Send that code to Luis on WhatsApp.","That's it. The code only lets the app send messages to you."]]],
- opts:[
-   {t:"Send me the number on WhatsApp",pick:true,pro:"Alerts work from day one.",con:""},
-   {t:"Email me the number",pro:"",con:""}]},
+   {t:"Done",pro:"Luis can start building.",con:""},
+   {t:"I'll do it in the next day or two",pick:true,pro:"Whenever you have 10 minutes.",con:""},
+   {t:"I got stuck",pro:"Write where in the box below, and Luis will help.",con:""}],more:"Where did you get stuck? (optional)"},
+ {id:"whatsapp",q:"Turn on your WhatsApp alerts",why:"This lets the app message you on WhatsApp when a parent requests a session. It's free and takes about 2 minutes. Tap an answer to see its steps.",opts:[
+   {t:"Send me the number on WhatsApp",pick:true,pro:"Alerts work from day one.",con:"",steps:["Luis sends you a phone number and a short message on WhatsApp.","Save the number in your contacts and send it that message on WhatsApp.","You get a reply with a code. Send that code to Luis on WhatsApp.","That's it. The code only lets the app send messages to you."]},
+   {t:"Email me the number",pro:"",con:"",steps:["Luis emails you a phone number and a short message.","Save the number in your contacts and send it that message on WhatsApp.","You get a reply with a code. Send that code to Luis on WhatsApp (not a regular text).","That's it. The code only lets the app send messages to you."]}]},
  {sec:"Last one"},
  {id:"else",q:"Anything else before we build?",why:"Anything missing, or anything you're not sure about.",text:true}
 ];
@@ -155,7 +153,7 @@ function draw(){
     return `<section class="q ${done?"done":""}" id="q-${x.id}"><h3>${n}. ${esc(x.q)}</h3><p class="why">${esc(x.why)}</p>${x.info?x.info.map(([h,ps])=>`<details class="info" ${x.infoOpen?"open":""}><summary>${esc(h)}</summary>${ps.map(p=>`<p>${esc(p)}</p>`).join("")}</details>`).join(""):""}
     ${x.text?"":x.opts.map((o,i)=>`<button class="opt ${a.pick===i?"on":""}" data-q="${x.id}" data-i="${i}" aria-pressed="${a.pick===i}">
       <span class="t"><span class="lbl">${esc(o.t)}</span>${o.pick?'<span class="pk">SUGGESTED</span>':""}</span>
-      ${o.pro||o.con?`<span class="pc">${o.pro?`<span>+ ${esc(o.pro)}</span>`:""}${o.con?`<span>– ${esc(o.con)}</span>`:""}</span>`:""}</button>`).join("")}
+      ${o.pro||o.con||o.steps?`<span class="pc">${o.pro?`<span>+ ${esc(o.pro)}</span>`:""}${o.con?`<span>– ${esc(o.con)}</span>`:""}${o.steps?`<span class="steps"><b>Steps</b>${o.steps.map((st,k)=>`<span>${k+1}. ${esc(st)}</span>`).join("")}</span>`:""}</span>`:""}</button>`).join("")}
     ${x.text||x.more?`<textarea rows="${x.text?4:2}" data-note="${x.id}" placeholder="${esc(x.more||"Type here (optional)")}">${esc(a.note||"")}</textarea>`:""}${x.id==="else"?"":cbox(x.id,a)}</section>`;
   }).join("");
   progress();
@@ -189,6 +187,7 @@ async function copyText(t){
 document.addEventListener("click",e=>{
   const cb=e.target.closest(".cbtn");if(cb){e.preventDefault();cb.hidden=true;const t=cb.nextElementSibling;t.hidden=false;t.focus();return}
   const o=e.target.closest(".opt");
+  if(o&&o.classList.contains("on")&&e.target.closest(".steps"))return;
   if(o){const id=o.dataset.q,i=+o.dataset.i;A[id]=A[id]||{};A[id].pick=A[id].pick===i?null:i;save();
     const sec=document.getElementById("q-"+id);sec.querySelectorAll(".opt").forEach((b,j)=>{b.classList.toggle("on",A[id].pick===j);b.setAttribute("aria-pressed",A[id].pick===j)});
     sec.classList.toggle("done",A[id].pick!=null);progress();refreshPreview();if(!document.getElementById("missing").hidden)warn();}
