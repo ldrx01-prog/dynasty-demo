@@ -467,7 +467,7 @@ function defaults(){
       guideDone:false},
     families:[],athletes:[],bookings:[],recurring:[],waitlist:[],packages:[],subs:[],videos:[],days:{},log:[]};
 }
-function save(){S.savedAt=new Date().toISOString();try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){mem=JSON.stringify(S)}Store.push()}
+function save(){S.savedAt=new Date().toISOString();if(Store.mode==="cloud"){Store.push();return}try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){mem=JSON.stringify(S)}Store.push()}
 function load(){try{const r=localStorage.getItem(KEY);if(r)return JSON.parse(r)}catch(e){}if(mem)return JSON.parse(mem);return null}
 function logIt(text){S.log.unshift({at:new Date().toISOString(),text});if(S.log.length>300)S.log.length=300}
 /* Store: local now; the cloud adapter (Supabase) plugs in here once the account is connected. */
@@ -681,7 +681,7 @@ function reqCard(b){
   return `<div class="req-card"><div class="row">${lvDot(a)}<div class="grow"><div class="nm">${esc(fullname(a))} <span class="muted small">· ${esc(a.level)}${a.age?` · ${a.age}`:""}</span></div>
     <div class="small">${dlong(b.date)} · <b>${tlabel(b.start)}</b></div></div></div>
     <div class="row" style="gap:6px">${b.third?`<span class="chip tag3">${ord(weekCount(b.athleteId,b.date,b.id)+1)} this week</span>`:""}${left?`<span class="chip teal">${left} spot${left>1?"s":""} left</span>`:`<span class="chip bad">Full</span>`}${owe?`<span class="chip bad">Owes ${money(owe)}</span>`:""}${currentPack(a.id,b.date)?`<span class="chip">Package · ${packLeft(currentPack(a.id,b.date))} left</span>`:`<span class="chip">Single ${money(S.settings.prices.single)}</span>`}</div>
-    ${b.note?`<div class="small">“${esc(b.note)}”</div>`:""}
+    ${b.note?`<div class="small">“${`<span style="overflow-wrap:anywhere">${esc(b.note)}</span>`}”</div>`:""}
     <div class="row"><button class="btn sm primary" data-act="approve" data-v="${b.id}" ${left?"":"disabled"}>Approve</button><button class="btn sm" data-act="decline" data-v="${b.id}">Decline</button>${left?"":`<span class="small muted">Full: decline or open another time.</span>`}</div></div>`;
 }
 function sessionLine(b){
@@ -765,7 +765,7 @@ function bookingSheet(id,justBooked){
   modal(`${sheetHead(fullname(a),`${esc(a.level)}${a.age?` · ${a.age}`:""} · ${esc(famLabel(f))}`)}
   <div class="row"><span class="chip ${st[1]}">${st[0]}</span><b>${dlong(b.date)} · ${tlabel(b.start)}</b></div>
   ${justBooked?`<div class="notice info small">Booked. Send the family a confirmation:</div>`:""}
-  ${b.status==="requested"?`<div class="row"><button class="btn primary" data-act="approve" data-v="${b.id}" ${spotsLeft(b.date,b.start)?"":"disabled"}>Approve</button><button class="btn" data-act="decline" data-v="${b.id}">Decline</button></div>${b.third?`<div class="notice warn small">This would be ${a.first}'s ${ord(weekCount(a.id,b.date,b.id)+1)} session this week.</div>`:""}${b.note?`<div class="small">Note from family: “${esc(b.note)}”</div>`:""}`:""}
+  ${b.status==="requested"?`<div class="row"><button class="btn primary" data-act="approve" data-v="${b.id}" ${spotsLeft(b.date,b.start)?"":"disabled"}>Approve</button><button class="btn" data-act="decline" data-v="${b.id}">Decline</button></div>${b.third?`<div class="notice warn small">This would be ${a.first}'s ${ord(weekCount(a.id,b.date,b.id)+1)} session this week.</div>`:""}${b.note?`<div class="small">Note from family: “${`<span style="overflow-wrap:anywhere">${esc(b.note)}</span>`}”</div>`:""}`:""}
   ${b.status==="approved"||b.status==="late"?`<dl class="kv"><dt>Pays with</dt><dd>${b.payType==="pack"?`Package${p?` · ${packLeft(p)} of ${p.total} left${p.expires?` · expires ${dlabel(p.expires)}`:""}`:""}`:`Single session · ${money(b.price)}`}</dd>
     ${b.payType==="single"?`<dt>Paid</dt><dd><label class="row small" style="gap:6px"><input type="checkbox" data-ch="bkPaid" data-v="${b.id}" ${b.paid?"checked":""}> ${b.paid?`Paid${b.paidOn?" "+dlabel(b.paidOn):""}`:"Not yet"}</label></dd>`:""}</dl>`:""}
   ${b.status==="approved"&&!isPast(b)?`<div class="row">${waBtn(ph,confirmText(b),b.sent&&b.sent.confirm?"Confirm again":"Send confirmation","sentConfirm",b.id)}${waBtn(ph,reminderText(b),"Send reminder","sentRemind",b.id)}</div>`:""}
@@ -827,15 +827,16 @@ ACT.reopenDay=(el,v)=>{reopenDay(v);save();closeModal();render();toast("Reopened
 
 /* ---- session notes + photos ---- */
 function sessionNotes(b,asParent){
+  const online=Store.mode==="cloud";
   const notes=(b.notes||[]).filter(n=>!(asParent&&n.private));
   return `<div class="sn"><div class="row between"><h3>Session notes</h3><span class="small muted">${asParent?"Shared with Coach Gil":"Shared with the family unless “Coach only”"}</span></div>
   <div class="list">${notes.length?notes.map(n=>`<div class="item" style="align-items:flex-start"><div class="grow"><div class="small"><b>${n.by==="family"?"Family":"Coach Gil"}</b> <span class="muted">· ${dlabel(n.at)}</span>${n.private?' <span class="chip warn">Coach only</span>':""}</div>${n.text?`<div style="white-space:pre-wrap">${esc(n.text)}</div>`:""}${n.img?`<img class="snimg" data-img="${n.img}" alt="Session photo" style="max-width:220px;border-radius:10px;border:1px solid var(--line);margin-top:6px">`:""}
-    ${(!asParent&&n.by!=="family")||(asParent&&n.by==="family")?`<button class="btn sm ghost" data-act="snDel" data-b="${b.id}" data-v="${n.id}" style="margin-top:4px">Delete</button>`:""}</div></div>`).join(""):`<div class="empty small">No notes yet.</div>`}</div>
-  <div class="field"><label for="sn-text">Add a note</label><textarea id="sn-text" rows="2" placeholder="${asParent?"What felt good, what to ask next time":"Worked on load timing, 3 rounds front toss"}"></textarea></div>
-  <div class="row"><label class="btn sm" for="sn-file">Add photo</label><input id="sn-file" type="file" accept="image/*" hidden data-ch="snFile"><span class="small muted" id="sn-fname"></span>${asParent?"":'<label class="row small" style="gap:4px"><input type="checkbox" id="sn-priv"> Coach only</label>'}<button class="btn sm primary" data-act="snAdd" data-v="${b.id}">Save note</button></div></div>`;
+    ${(!asParent&&n.by!=="family")||(asParent&&!online&&n.by==="family")?`<button class="btn sm ghost" data-act="snDel" data-b="${b.id}" data-v="${n.id}" style="margin-top:4px">Delete</button>`:""}</div></div>`).join(""):`<div class="empty small">No notes yet.</div>`}</div>
+  ${online&&asParent?"":`<div class="field"><label for="sn-text">Add a note</label><textarea id="sn-text" rows="2" placeholder="${asParent?"What felt good, what to ask next time":"Worked on load timing, 3 rounds front toss"}"></textarea></div>
+  <div class="row">${online?"":`<label class="btn sm" for="sn-file">Add photo</label><input id="sn-file" type="file" accept="image/*" hidden data-ch="snFile"><span class="small muted" id="sn-fname"></span>`}${asParent?"":'<label class="row small" style="gap:4px"><input type="checkbox" id="sn-priv"> Coach only</label>'}<button class="btn sm primary" data-act="snAdd" data-v="${b.id}">Save note</button></div>`}</div>`;
 }
 CH.snFile=el=>{const f=el.files[0];$("#sn-fname").textContent=f?f.name:""};
-ACT.snAdd=async(el,v)=>{const b=S.bookings.find(x=>x.id===v);const text=($("#sn-text").value||"").trim();const f=$("#sn-file").files[0]||null;const asP=U.role==="parent";
+ACT.snAdd=async(el,v)=>{const b=S.bookings.find(x=>x.id===v);const text=($("#sn-text").value||"").trim();const fi=$("#sn-file");const f=fi&&fi.files[0]||null;const asP=U.role==="parent";
   if(!text&&!f){toast("Type a note or add a photo first");return}el.disabled=true;let img=null;
   if(f){img="img-"+uid();await Blobs.put(img,f)}
   (b.notes=b.notes||[]).push({id:"n"+uid(),by:asP?"family":"coach",text,private:!asP&&!!($("#sn-priv")&&$("#sn-priv").checked),img,at:today()});
@@ -904,7 +905,7 @@ ACT.nfSave=()=>{
 /* ---- profile ---- */
 function vProfile(){
   const a=ath(U.athleteId);if(!a){U.athleteId=null;return vAthletes()}
-  const f=famOf(a);const tabs=[["overview","Overview"],["sessions","Sessions"],["tracking","Tracking"],["videos","Videos"]];
+  const f=famOf(a);const tabs=[["overview","Overview"],["sessions","Sessions"],["tracking","Tracking"],["videos","Videos"]].filter(t=>Store.mode!=="cloud"||t[0]!=="videos");
   return `<button class="btn sm ghost" data-act="backAth" style="align-self:flex-start">${ICON.chevL} Athletes</button>
   <div class="prof-head"><span class="avatar" style="box-shadow:inset 0 0 0 3px ${lvColor(a.level)}">${initials(a)}</span><div class="grow"><h2>${esc(fullname(a))}</h2><div class="muted">${esc(a.level)}${a.age?` · ${a.age}`:""}${a.pos?` · ${esc(a.pos)}`:""} · ${esc(famLabel(f))}</div></div><button class="btn sm" data-act="editAthlete" data-v="${a.id}">Edit</button></div>
   <div class="subtabs">${tabs.map(([k,l])=>`<button class="${U.profTab===k?"on":""}" data-act="profTab" data-v="${k}">${l}</button>`).join("")}</div>
@@ -947,7 +948,8 @@ function profSessions(a){
 function inviteText(name,link){return `Hi ${name.split(" ")[0]}! Here's your link to request hitting sessions with Coach Gil: ${link}\nTap it, then tap “Sign in.” You'll stay signed in on this phone.`}
 async function makeInvite(target){return Store.inviteLink?Store.inviteLink(target):location.href.split("#")[0]}
 async function inviteSheet(target,name,phone,mark){
-  const link=await makeInvite(target);const text=inviteText(name,link);
+  let link;try{link=await makeInvite(target)}catch(e){toast("Couldn't make the link. Check your internet");return}
+  const text=inviteText(name,link);
   modal(`${sheetHead("Send invite",esc(name))}
   ${Store.mode==="local"?`<div class="notice warn small">Practice mode: sign-in links start working once the app is connected to your storage account. This sends the app link for now.</div>`:""}
   <div class="small" style="white-space:pre-wrap;background:#F3F5F4;border-radius:10px;padding:10px">${esc(text)}</div>
@@ -978,7 +980,9 @@ function drawEF(){const f=U.ef;
   <div class="field"><label for="ef-n">Family name</label><input id="ef-n" value="${esc(f.name)}" data-in="ef"></div>
   ${f.contacts.map((c,i)=>`<div class="card fields"><div class="field"><label for="c${i}n">Name</label><input id="c${i}n" value="${esc(c.name)}" data-in="efc" data-i="${i}" data-f="name"></div><div class="field"><label for="c${i}p">Cell</label><input id="c${i}p" type="tel" value="${esc(c.phone||"")}" data-in="efc" data-i="${i}" data-f="phone"></div><div class="field"><label for="c${i}e">Email</label><input id="c${i}e" type="email" value="${esc(c.email||"")}" data-in="efc" data-i="${i}" data-f="email"></div><button class="btn sm ghost" data-act="efDelC" data-v="${i}" style="align-self:end">Remove</button></div>`).join("")}
   <button class="btn sm" data-act="efAddC" style="align-self:flex-start">+ Add a parent or guardian</button>
-  <div class="row"><button class="btn primary" data-act="efSave">Save</button><button class="btn ghost" data-act="close">Cancel</button></div>`)}
+  <div class="row"><button class="btn primary" data-act="efSave">Save</button><button class="btn ghost" data-act="close">Cancel</button></div>
+  ${Store.mode==="cloud"?`<div class="small muted">Lost phone or wrong person? This signs out everyone in this family. You can send a new invite anytime.</div><button class="btn sm danger" data-act="efSignout" data-v="${f.id}" style="align-self:flex-start">Sign out this family</button>`:""}`)}
+ACT.efSignout=async(el,v)=>{if(!el.dataset.sure){el.dataset.sure=1;el.textContent="Tap again to sign them out";return}el.disabled=true;try{const r=await Cloud.rpc("hwg_family_signout",{fid:v});closeModal();render();toast(r.removed?"Signed out. Their links no longer work":"No one was signed in")}catch(e){el.disabled=false;toast("Couldn't do that. Check your internet")}};
 IN.ef=el=>{U.ef.name=el.value};IN.efc=el=>{U.ef.contacts[+el.dataset.i][el.dataset.f]=el.value};
 ACT.efAddC=()=>{U.ef.contacts.push({id:"c"+uid(),name:"",phone:"",email:"",invited:null});drawEF()};
 ACT.efDelC=(el,v)=>{U.ef.contacts.splice(+v,1);drawEF()};
@@ -1056,7 +1060,7 @@ ACT.payAll=(el,v)=>{charges(v).forEach(c=>markPaid(c.kind,c.id,true));save();ren
 /* ==== 06-parent.js ==== */
 /* ================= PARENT / ATHLETE SIDE ================= */
 /* In practice mode Gil previews a family from Settings; once connected, the signed-in family decides this. */
-function pFam(){return fam(U.preview)}
+function pFam(){return fam(U.famId||U.preview)}
 function pKids(){const f=pFam();if(!f)return [];if(U.asAthlete)return [ath(U.asAthlete)].filter(Boolean);return famKids(f.id)}
 function pKid(){const ks=pKids();if(!ks.length)return null;if(!ks.some(k=>k.id===U.kid))U.kid=ks[0].id;return ath(U.kid)}
 function kidSwitch(){const ks=pKids();if(ks.length<2)return "";return `<div class="row kids"><span class="label">Athlete</span><div class="seg sm">${ks.map(a=>`<button class="${a.id===U.kid?"on":""}" data-act="pKid" data-v="${a.id}">${esc(a.first)}</button>`).join("")}</div></div>`}
@@ -1091,11 +1095,15 @@ ACT.pRequest=el=>{const d=el.dataset.d,m=+el.dataset.m;const a=pKid();const f=pF
   <div class="field"><label for="rq-n">Note for Coach Gil (optional)</label><textarea id="rq-n" rows="2" placeholder="Working on…"></textarea></div>
   <div class="small muted">Cancel ${S.settings.lateHours}+ hours ahead and nothing is charged. Later than that, the session counts.</div>
   <div class="row"><button class="btn primary" data-act="pSend" data-d="${d}" data-m="${m}">Send request</button><button class="btn ghost" data-act="close">Cancel</button></div>`)};
-ACT.pSend=el=>{const d=el.dataset.d,m=+el.dataset.m;const a=pKid();
+ACT.pSend=async el=>{const d=el.dataset.d,m=+el.dataset.m;const a=pKid();
+  if(Store.mode==="cloud"){const note=($("#rq-n").value||"").trim();el.disabled=true;el.textContent="Sending…";const r=await Cloud.act("hwg_request",{aid:a.id,d,m_start:m,note});closeModal();render();if(r)Cloud.tellCoach(a,d,m);return}
+
   if(spotsLeft(d,m)<=0){closeModal();render();toast("Sorry, that time just filled up");return}
   if(S.bookings.some(b=>b.athleteId===a.id&&b.date===d&&b.start===m&&LIVE.includes(b.status))){closeModal();render();return}
   requestSession(a.id,d,m,($("#rq-n").value||"").trim(),U.asAthlete?"athlete":"parent");save();Store.notifyCoach&&Store.notifyCoach();closeModal();render();toast("Request sent. You'll get a confirmation once Coach Gil approves")};
-ACT.pWait=el=>{const d=el.dataset.d,m=+el.dataset.m;const a=pKid();S.waitlist.push({id:"w"+uid(),athleteId:a.id,date:d,start:m,status:"waiting",createdAt:new Date().toISOString()});save();render();toast("You're on the waitlist. Coach Gil will message you if a spot opens")};
+ACT.pWait=async el=>{const d=el.dataset.d,m=+el.dataset.m;const a=pKid();
+  if(Store.mode==="cloud"){const r=await Cloud.act("hwg_wait_join",{aid:a.id,d,m_start:m});render();if(r)toast("You're on the waitlist. Coach Gil will message you if a spot opens");return}
+S.waitlist.push({id:"w"+uid(),athleteId:a.id,date:d,start:m,status:"waiting",createdAt:new Date().toISOString()});save();render();toast("You're on the waitlist. Coach Gil will message you if a spot opens")};
 
 function vParentMine(){
   const a=pKid();if(!a)return "";
@@ -1109,11 +1117,12 @@ function vParentMine(){
   ${wl.length?`<div class="card"><h3>Waitlist</h3><div class="list">${wl.map(w=>`<div class="item"><div class="main"><div class="nm">${dlabel(w.date)} · ${tlabel(w.start)}</div></div><button class="btn sm ghost" data-act="pLeaveWl" data-v="${w.id}">Leave</button></div>`).join("")}</div></div>`:""}
   <div class="card"><h3>Past</h3><div class="list">${past.length?past.map(b=>`<div class="item"><div class="main" data-act="pOpenBk" data-v="${b.id}"><div class="nm">${dlabel(b.date)} · ${tlabel(b.start)}</div><div class="muted small">${b.status==="late"?"Late cancel · counted":b.status==="forgiven"?"Late cancel · forgiven":"Done"}${(b.notes||[]).filter(n=>!n.private).length?` · 📎 ${(b.notes||[]).filter(n=>!n.private).length} notes`:""}</div></div></div>`).join(""):`<div class="empty small">No past sessions yet.</div>`}</div></div>`;
 }
-ACT.pCancel=(el,v)=>{const b=S.bookings.find(x=>x.id===v);const late=b.status==="approved"&&hoursUntil(b.date,b.start)<S.settings.lateHours;
+ACT.pCancel=async(el,v)=>{const b=S.bookings.find(x=>x.id===v);const late=b.status==="approved"&&hoursUntil(b.date,b.start)<S.settings.lateHours;
   if(!el.dataset.sure){el.dataset.sure=1;el.textContent=late?`Less than ${S.settings.lateHours} hrs: it counts.`+" Tap to confirm":"Tap again to confirm";return}
+  if(Store.mode==="cloud"){const r=await Cloud.act("hwg_cancel",{bid:v});render();if(r)toast(r.late?"Cancelled. It counts as used since it's less than "+S.settings.lateHours+" hours away":"Cancelled");return}
   if(b.status==="requested"){b.status="cancelled";b.cancelledBy="parent";logIt(`Request withdrawn: ${fullname(ath(b.athleteId))}`)}else cancelBooking(b,"parent");
   save();render();toast(late?"Cancelled. It counts as used since it's less than 24 hours away":"Cancelled")};
-ACT.pLeaveWl=(el,v)=>{S.waitlist.find(w=>w.id===v).status="done";save();render()};
+ACT.pLeaveWl=async(el,v)=>{if(Store.mode==="cloud"){await Cloud.act("hwg_wait_leave",{wid:v});render();return}S.waitlist.find(w=>w.id===v).status="done";save();render()};
 ACT.pOpenBk=(el,v)=>parentBookingSheet(v);
 function parentBookingSheet(id){const b=S.bookings.find(x=>x.id===id);const a=ath(b.athleteId);
   modal(`${sheetHead(`${a.first} · ${tlabel(b.start)}`,dlong(b.date))}<div class="row"><span class="chip ${b.status==="requested"?"warn":"good"}">${b.status==="requested"?"Waiting for Coach Gil":b.status==="approved"?(isPast(b)?"Done":"Booked"):b.status==="late"?"Late cancel":"Cancelled"}</span></div>${sessionNotes(b,true)}`)}
@@ -1408,10 +1417,10 @@ function vSettings(){
   <div class="card" style="display:flex;flex-direction:column;gap:10px"><h3>App</h3><div class="fields">
     <div class="field"><label for="st-name">App name</label><input id="st-name" value="${esc(s.appName)}" data-ch="stText" data-f="appName"></div>
     <div class="field"><label for="st-ph">Your cell (parents can tap to call)</label><input id="st-ph" type="tel" value="${esc(s.coachPhone)}" data-ch="stText" data-f="coachPhone"></div></div></div>
-  <div class="card" style="display:flex;flex-direction:column;gap:10px"><h3>See what parents see</h3><div class="small muted">Look at the app exactly as a family does. Nothing you tap there is sent to anyone.</div>
-    ${S.families.filter(f=>!f.archived).length?`<div class="row"><select id="pv-f" class="pick" style="background:#fff;border:1px solid #B9C3BF">${S.families.filter(f=>!f.archived).map(f=>`<option value="${f.id}">${esc(famLabel(f))}</option>`).join("")}</select><button class="btn primary" data-act="previewGo">Preview</button></div>`:`<div class="small muted">Add a family first.</div>`}</div>
+  ${Store.mode==="cloud"?"":`<div class="card" style="display:flex;flex-direction:column;gap:10px"><h3>See what parents see</h3><div class="small muted">Look at the app exactly as a family does. Nothing you tap there is sent to anyone.</div>
+    ${S.families.filter(f=>!f.archived).length?`<div class="row"><select id="pv-f" class="pick" style="background:#fff;border:1px solid #B9C3BF">${S.families.filter(f=>!f.archived).map(f=>`<option value="${f.id}">${esc(famLabel(f))}</option>`).join("")}</select><button class="btn primary" data-act="previewGo">Preview</button></div>`:`<div class="small muted">Add a family first.</div>`}</div>`}
   <div class="card" style="display:flex;flex-direction:column;gap:10px"><h3>Your data</h3><div class="small muted">Download a copy anytime. It's yours to keep or move.</div>
-    <div class="row"><button class="btn" data-act="exportJson">Download backup</button><button class="btn" data-act="exportCsv">Download contacts (spreadsheet)</button><label class="btn" for="imp">Restore a backup</label><input id="imp" type="file" accept="application/json,.json" hidden data-ch="importJson"></div>
+    <div class="row"><button class="btn" data-act="exportJson">Download backup</button><button class="btn" data-act="exportCsv">Download contacts (spreadsheet)</button>${Store.mode==="cloud"?`<button class="btn" data-act="addDevice">Add another device</button>`:`<label class="btn" for="imp">Restore a backup</label><input id="imp" type="file" accept="application/json,.json" hidden data-ch="importJson">`}</div>
     <div class="small muted">${Store.mode==="local"?"Practice mode: saved on this device only until the app is connected to your storage account.":"Saved online to your storage account."}${S.savedAt?` Last saved ${new Date(S.savedAt).toLocaleString()}.`:""}</div></div>
   <div class="card" style="display:flex;flex-direction:column;gap:8px"><h3>Activity</h3><div class="list">${S.log.slice(0,15).map(l=>`<div class="item small"><span class="muted num" style="min-width:92px">${new Date(l.at).toLocaleDateString()}</span><span>${esc(l.text)}</span></div>`).join("")||'<div class="empty small">Nothing yet.</div>'}</div></div>
   ${Store.mode==="local"?`<button class="btn sm danger" data-act="resetAll" style="align-self:flex-start">Start over (erase this device)</button>`:""}`;
@@ -1452,12 +1461,223 @@ function guideSheet(){
   <li><div><b>Money.</b> Mark sessions and packages paid as Zelle comes in. Families who owe can't request until they pay, unless you unlock them.</div></li>
   <li><div><b>Someone called?</b> Tap any open spot on the schedule to add them yourself.</div></li>
   </ol>
-  <div class="small muted">Save the app to your Home Screen: in Safari tap Share, then “Add to Home Screen.”</div>
+  <div class="small muted">Save the app to your Home Screen. Android: in Chrome tap the 3 dots, then “Add to Home screen” (or “Install app”). iPhone: in Safari tap Share, then “Add to Home Screen.”</div>
   <div class="row"><button class="btn primary" data-act="guideDone">Got it</button><button class="btn" data-act="guideSchedule">Show my hours</button></div>`);
 }
 ACT.guide=()=>guideSheet();
 ACT.guideDone=()=>{S.settings.guideDone=true;save();closeModal()};
 ACT.guideSchedule=()=>{S.settings.guideDone=true;save();closeModal();U.tab="settings";render();scrollTo(0,0)};
+
+/* ==== 095-cloud.js ==== */
+/* ================= ONLINE STORAGE (Supabase) =================
+   Coach: keeps the whole app in memory and saves only what changed.
+   Parent/athlete: gets a filtered view from the server and acts through server functions.
+   The key below is the public one. It only opens what the database functions allow. */
+const CLOUD={url:"https://axzgilfpbbovdkmnsjhc.supabase.co",key:"sb_publishable_T_deTMyTOmBY_24FkODIjA_nSWYlS_l"};
+const SESS_KEY="hitwithgil-session";
+const ARR_KINDS=["families","athletes","bookings","recurring","waitlist","packages","subs","videos"];
+const DOC_KINDS=["settings","days","log"];
+const ERR_TEXT={slot_full:"Sorry, that time just filled up",already_requested:"You already asked for this time",not_open:"That day isn't open yet",slot_past:"That time has passed",no_such_time:"That time isn't available anymore",too_many:"You have a lot of requests waiting. Please check with Coach Gil",not_cancellable:"That session can't be changed anymore",not_allowed:"Please ask Coach Gil for a new link"};
+const Cloud={
+  sess:null,snap:{},who:null,timer:null,syncing:false,again:false,pendingT:null,err:false,lastView:"",
+  on(){return !/[?&]practice=1/.test(location.search)},
+  readSess(){try{return JSON.parse(localStorage.getItem(SESS_KEY))}catch(e){return null}},
+  writeSess(s){this.sess=s;try{s?localStorage.setItem(SESS_KEY,JSON.stringify(s)):localStorage.removeItem(SESS_KEY)}catch(e){}},
+  takeTokens(j){this.writeSess({access:j.access_token,refresh:j.refresh_token,exp:Date.now()+((j.expires_in||3600)*1000)})},
+  async authPost(path,body){
+    const r=await fetch(CLOUD.url+"/auth/v1/"+path,{method:"POST",headers:{apikey:CLOUD.key,"Content-Type":"application/json"},body:JSON.stringify(body)});
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok){const e=new Error(j.msg||j.error_description||"auth_failed");e.status=r.status;throw e}
+    return j;
+  },
+  async refresh(){
+    if(this.refreshing)return this.refreshing;
+    this.refreshing=(async()=>{
+      const st=this.readSess();
+      if(st&&st.refresh!==this.sess.refresh){this.sess=st;if(Date.now()<st.exp-60000)return} /* another tab already renewed */
+      const tried=this.sess.refresh;
+      try{this.takeTokens(await this.authPost("token?grant_type=refresh_token",{refresh_token:tried}))}
+      catch(e){
+        if(e.status>=400&&e.status<500){const now=this.readSess();if(!now||now.refresh===tried)this.writeSess(null);else this.sess=now}
+        throw e;
+      }
+      finally{this.refreshing=null}
+    })();
+    return this.refreshing;
+  },
+  async rpc(fn,args,retried){
+    if(!this.sess){const e=new Error("not_allowed");throw e}
+    const st=this.readSess();if(st&&st.exp>this.sess.exp)this.sess=st;
+    if(Date.now()>this.sess.exp-60000)await this.refresh();
+    const r=await fetch(CLOUD.url+"/rest/v1/rpc/"+fn,{method:"POST",headers:{apikey:CLOUD.key,Authorization:"Bearer "+this.sess.access,"Content-Type":"application/json"},body:JSON.stringify(args||{})});
+    if(r.status===401&&!retried){await this.refresh();return this.rpc(fn,args,true)}
+    const j=await r.json().catch(()=>null);
+    if(!r.ok){throw new Error((j&&j.message)||"failed")}
+    return j;
+  },
+  /* ---------- screens before the app ---------- */
+  screen(html){$("#bars").innerHTML="";$("#tabs").innerHTML="";$("#hdrActions").innerHTML="";$("#app").innerHTML=`<div class="card" style="margin-top:24px;text-align:center">${html}</div>`},
+  askForLink(){this.screen(`<h2>Welcome</h2><p class="muted">This app is by invitation. Ask Coach Gil to send you your link.</p>`)},
+  showError(){this.screen(`<h2>Can't connect</h2><p class="muted">Check your internet and try again.</p><button class="btn primary" data-act="cloudRetry">Try again</button>`)},
+  /* ---------- start ---------- */
+  async start(){
+    this.sess=this.readSess();
+    const m=/invite=([a-f0-9]+)/.exec(location.hash);
+    if(m){this.invite=m[1];history.replaceState(null,"",location.pathname+location.search);this.screen(`<h2>${esc(defaults().settings.appName)}</h2><p class="muted">Tap below to sign in on this phone.</p><button class="btn primary" data-act="cloudSignIn">Sign in</button>`);return}
+    if(!this.sess){this.askForLink();return}
+    await this.enter();
+  },
+  async enter(){
+    try{
+      this.who=await this.rpc("hwg_whoami");
+      if(!this.who||!this.who.role){this.askForLink();return}
+      Store.mode="cloud";
+      if(this.who.role==="coach"){await this.loadCoach(true);U.role="coach"}else{await this.loadParent(true);U.role="parent";U.tab="book"}
+      U.day=nextOpenDay();
+      if(this.who.role==="coach"){const a=ensureRegulars();ensureSubs();if(a)save()}
+      render();
+      if(this.who.role==="coach"&&!S.settings.guideDone)setTimeout(guideSheet,300);
+      this.startPolling();
+    }catch(e){
+      if(e.message==="not_allowed"||!this.sess)this.askForLink();else this.showError();
+    }
+  },
+  /* ---------- coach ---------- */
+  flatten(){
+    const out={};
+    ARR_KINDS.forEach(k=>(S[k]||[]).forEach(x=>{out[k+"|"+x.id]={kind:k,id:x.id,data:x}}));
+    DOC_KINDS.forEach(k=>{out[k+"|main"]={kind:k,id:"main",data:S[k]}});
+    return out;
+  },
+  build(rows){
+    const D=defaults();const next=D;let hasSettings=false;
+    rows.forEach(r=>{
+      if(ARR_KINDS.includes(r.kind))next[r.kind].push(r.data);
+      else if(r.kind==="settings"){next.settings=Object.assign(D.settings,r.data);hasSettings=true}
+      else if(r.kind==="days")next.days=r.data||{};
+      else if(r.kind==="log")next.log=Array.isArray(r.data)?r.data:[];
+    });
+    S=next;
+    const revs={};rows.forEach(r=>{revs[r.kind+"|"+r.id]=r.rev});
+    const flat=this.flatten();const snap={};
+    Object.keys(flat).forEach(k=>{if(revs[k]!=null)snap[k]={json:JSON.stringify(flat[k].data),rev:revs[k]}});
+    this.snap=snap;
+    return hasSettings;
+  },
+  async loadCoach(first){
+    const rows=await this.rpc("hwg_coach_pull");
+    const had=this.build(rows||[]);
+    if(first&&!had)this.queue();
+  },
+  queue(){clearTimeout(this.pendingT);this.pendingT=setTimeout(()=>this.sync(),300)},
+  busy(){return this.syncing||this.pendingT!=null&&this.hasChanges()},
+  hasChanges(){return this.changes().length>0},
+  changes(){
+    const cur=this.flatten();const ch=[];
+    Object.keys(cur).forEach(k=>{const j=JSON.stringify(cur[k].data);const s=this.snap[k];
+      if(!s)ch.push({key:k,kind:cur[k].kind,id:cur[k].id,data:cur[k].data,rev:null,json:j});
+      else if(s.json!==j)ch.push({key:k,kind:cur[k].kind,id:cur[k].id,data:cur[k].data,rev:s.rev,json:j})});
+    Object.keys(this.snap).forEach(k=>{if(!cur[k]){const[kind,...id]=k.split("|");ch.push({key:k,kind,id:id.join("|"),rev:this.snap[k].rev,del:true})}});
+    return ch;
+  },
+  async sync(){
+    if(this.syncing){this.again=true;return}
+    this.syncing=true;
+    try{
+      const ch=this.changes();
+      if(ch.length){
+        const res=await this.rpc("hwg_coach_save",{changes:ch.map(c=>({kind:c.kind,id:c.id,rev:c.rev,del:c.del||false,data:c.data}))});
+        const byKey={};ch.forEach(c=>byKey[c.key]=c);
+        (res.saved||[]).forEach(s=>{const k=s.kind+"|"+s.id;if(byKey[k].del)delete this.snap[k];else this.snap[k]={json:byKey[k].json,rev:s.rev}});
+        if(this.err){this.err=false;render()}
+        if((res.conflicts||[]).length){
+          toast("A family just changed something. Refreshed.");
+          const rows=await this.rpc("hwg_coach_pull");
+          /* server wins on the records in conflict; every other unsaved change is kept */
+          const conf=new Set(res.conflicts.map(x=>x.kind+"|"+x.id));
+          const keep=this.changes().filter(x=>!conf.has(x.key));
+          this.build(rows);keep.forEach(x=>this.applyLocal(x));
+          closeModal();render();if(keep.length)this.queue();
+        }
+      }
+    }catch(e){
+      if(!this.err){this.err=true;render()}
+      if(this.sess)setTimeout(()=>this.queue(),10000);
+    }finally{
+      this.syncing=false;
+      if(this.again){this.again=false;this.queue()}
+    }
+  },
+  applyLocal(x){
+    if(DOC_KINDS.includes(x.kind)){S[x.kind]=x.data;return}
+    const arr=S[x.kind];const i=arr.findIndex(r=>r.id===x.id);
+    if(x.del){if(i>=0)arr.splice(i,1)}else if(i>=0)arr[i]=x.data;else arr.push(x.data);
+  },
+  sameAsSnap(rows){return rows.length===Object.keys(this.snap).length&&rows.every(r=>{const s=this.snap[r.kind+"|"+r.id];return s&&s.rev===r.rev})},
+  /* ---------- parent ---------- */
+  async loadParent(){
+    const v=await this.rpc("hwg_parent_view");
+    const D=defaults();
+    D.settings=Object.assign(D.settings,v.settings||{});
+    D.days=v.days||{};D.families=[v.family];D.athletes=v.athletes||[];D.bookings=v.bookings||[];D.packages=v.packages||[];D.subs=v.subs||[];D.waitlist=v.waitlist||[];
+    S=D;U.famId=v.family_id;U.asAthlete=v.role==="athlete"?v.athlete_id:null;
+    const sig=JSON.stringify(v);const changed=sig!==this.lastView;this.lastView=sig;return changed;
+  },
+  /* run a parent action on the server, then refresh what they see */
+  async act(fn,args){
+    try{const r=await this.rpc(fn,args);await this.loadParent();return r||{}}
+    catch(e){toast(ERR_TEXT[e.message]||"That didn't go through. Please try again");try{await this.loadParent()}catch(_){}return null}
+  },
+  tellCoach(a,d,m){
+    const p=S.settings.coachPhone;
+    if(!p){toast("Request sent. You'll get a confirmation once Coach Gil approves");return}
+    const text=`Hi Coach, I just requested ${dlong(d)} at ${tlabel(m)} for ${a.first} in the app.`;
+    modal(`${sheetHead("Request sent",`${esc(a.first)} · ${dlong(d)} · ${tlabel(m)}`)}
+    <div class="small muted">Coach Gil approves it, then you get a confirmation. You can let him know now.</div>
+    <div class="row"><a class="btn wa" href="${waHref(p,text)}" target="_blank" rel="noopener">Tell Coach Gil on WhatsApp</a><button class="btn ghost" data-act="close">Done</button></div>`);
+  },
+  /* ---------- keep up to date ---------- */
+  startPolling(){if(this.timer)return;this.timer=setInterval(()=>this.tick(),20000);document.addEventListener("visibilitychange",()=>{if(!document.hidden)this.tick()})},
+  async tick(){
+    if(document.hidden||this.ticking||$("#modal .sheet"))return;
+    const ae=document.activeElement;if(ae&&/INPUT|TEXTAREA|SELECT/.test(ae.tagName))return;
+    this.ticking=true;
+    try{
+      if(this.who.role==="coach"){
+        if(this.syncing||this.hasChanges())return;
+        const rows=await this.rpc("hwg_coach_pull");
+        if(this.sameAsSnap(rows))return;
+        if($("#modal .sheet")||this.syncing||this.hasChanges())return;
+        this.build(rows);render();
+      }else if(await this.loadParent())render();
+    }catch(e){if(e.message==="not_allowed")this.askForLink()}
+    finally{this.ticking=false}
+  }
+};
+ACT.cloudRetry=()=>Cloud.enter();
+ACT.cloudSignIn=async el=>{
+  el.disabled=true;el.textContent="Signing in…";
+  try{
+    if(!Cloud.sess)Cloud.takeTokens(await Cloud.authPost("signup",{data:{}}));
+    await Cloud.rpc("hwg_claim",{tok:Cloud.invite});
+    Cloud.invite=null;await Cloud.enter();
+  }catch(e){
+    const coach=e.message==="coach_device";
+    Cloud.screen(`<h2>${coach?"This phone is Coach Gil's":"That link has been used"}</h2><p class="muted">${coach?"Open this link on the parent's phone.":"Ask Coach Gil to send you a new link."}</p>${coach||Cloud.sess?`<button class="btn primary" data-act="cloudRetry">Back to the app</button>`:""}`);
+  }
+};
+ACT.addDevice=async()=>{
+  try{const tok=await Cloud.rpc("hwg_invite_make",{r:"coach",fid:null,aid:null,lbl:"Coach device"});
+    const link=location.origin+location.pathname+"#invite="+tok;
+    modal(`${sheetHead("Add another device","Works once, for 14 days")}<div class="notice warn small">This link opens your whole app. Only open it on your own phone or computer. Don't send it to anyone else.</div><div class="small" style="word-break:break-all;background:#F3F5F4;border-radius:10px;padding:10px">${esc(link)}</div><div class="row"><button class="btn ghost" data-act="close">Close</button></div>`);
+  }catch(e){toast("Couldn't make the link. Try again")}
+};
+Store.push=function(){if(Store.mode==="cloud")Cloud.queue()};
+Store.inviteLink=async function(t){
+  if(Store.mode!=="cloud")return location.href.split("#")[0];
+  const tok=await Cloud.rpc("hwg_invite_make",t.kind==="athlete"?{r:"athlete",fid:null,aid:t.athleteId,lbl:"Athlete"}:{r:"parent",fid:t.familyId,aid:null,lbl:"Parent"});
+  return location.origin+location.pathname+"#invite="+tok;
+};
 
 /* ==== 10-main.js ==== */
 /* ================= RENDER ================= */
@@ -1469,8 +1689,8 @@ function render(){
   document.title=S.settings.appName;$("#appName").textContent=S.settings.appName;
   const reqN=S.bookings.filter(b=>b.status==="requested"&&!isPast(b)).length;
   $("#hdrActions").innerHTML=parent?(S.settings.coachPhone?`<a class="hdr-btn" href="${telHref(S.settings.coachPhone)}">${ICON.phone}<span class="txt">Call Coach Gil</span></a>`:""):`<button class="hdr-btn" data-act="tab" data-v="settings" aria-label="Settings">${ICON.gear}<span class="txt">Settings</span></button>`;
-  $("#bars").innerHTML=(U.preview?`<div class="preview-bar"><div class="wrap"><span>Preview: what the <b>${esc(famLabel(pFam()))}</b> sees.</span><button class="btn sm" data-act="previewExit">Exit preview</button></div></div>`:"")+(Store.mode==="local"&&!parent?`<div class="local-bar"><div class="wrap">Practice mode: saved on this device until your storage account is connected.</div></div>`:"");
-  const tabs=parent?PARENT_TABS:COACH_TABS;
+  $("#bars").innerHTML=(U.preview?`<div class="preview-bar"><div class="wrap"><span>Preview: what the <b>${esc(famLabel(pFam()))}</b> sees.</span><button class="btn sm" data-act="previewExit">Exit preview</button></div></div>`:"")+(Cloud.err&&!parent?`<div class="local-bar"><div class="wrap">${Cloud.sess?"Not saved yet. Check your internet. It will keep trying.":"You're signed out, so changes aren't saving. Download a backup in Settings, then open a new device link."}</div></div>`:"")+(Store.mode==="local"&&!parent?`<div class="local-bar"><div class="wrap">Practice mode: saved on this device until your storage account is connected.</div></div>`:"");
+  const tabs=(parent?PARENT_TABS:COACH_TABS).filter(t=>Store.mode!=="cloud"||(t[0]!=="videos"&&t[0]!=="progress"));
   if(!parent&&U.tab==="settings"){}else if(!tabs.some(t=>t[0]===U.tab))U.tab=tabs[0][0];
   $("#tabs").innerHTML=tabs.map(([k,l,ic])=>`<button class="${U.tab===k?"on":""}" data-act="tab" data-v="${k}">${ic}<span>${l}</span>${k==="today"&&reqN?`<span class="badge">${reqN}</span>`:""}</button>`).join("");
   const app=$("#app");
@@ -1501,6 +1721,7 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape"&&$("#modal .sheet"))
 
 /* ================= START ================= */
 function boot(){
+  if(Cloud.on()){S=defaults();Cloud.start();return}
   S=load();
   if(!S||S.v!==1)S=defaults();
   S=Object.assign(defaults(),S);S.settings=Object.assign(defaults().settings,S.settings);
