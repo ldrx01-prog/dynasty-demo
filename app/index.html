@@ -614,7 +614,9 @@ function reopenDay(date){delete S.days[date];logIt(`Reopened ${dlabel(date)}`)}
 
 /* ---------- reminders (free: Gil taps to send on WhatsApp) ---------- */
 function confirmText(b){const a=ath(b.athleteId);return `Hi! ${a.first}'s session with Coach Gil is confirmed for ${dlong(b.date)} at ${tlabel(b.start)}. See you there!`}
-function reminderText(b){const a=ath(b.athleteId);return `Reminder: ${a.first} has a hitting session with Coach Gil tomorrow, ${dlong(b.date)}, at ${tlabel(b.start)}. Reply here if anything changes.`}
+/* the real day: "today", "tomorrow", or "on" + the date. It used to always say "tomorrow". */
+function whenWord(date){const now=new Date();if(date===ymd(now))return "today, ";if(date===ymd(addDays(now,1)))return "tomorrow, ";return "on "}
+function reminderText(b){const a=ath(b.athleteId);return `Reminder: ${a.first} has a hitting session with Coach Gil ${whenWord(b.date)}${dlong(b.date)}, at ${tlabel(b.start)}. Reply here if anything changes.`}
 function closureText(b,note){const a=ath(b.athleteId);return `Hi, Coach Gil here. I have to cancel ${a.first}'s session on ${dlong(b.date)} at ${tlabel(b.start)}${note?` (${note})`:""}. You won't be charged${b.payType==="pack"?" and the session goes back on your package":""}. Request a new time anytime in the app.`}
 function offerText(w){const a=ath(w.athleteId);return `Good news! A spot opened for ${a.first} on ${dlong(w.date)} at ${tlabel(w.start)}. Reply YES and I'll lock it in.`}
 function phoneFor(aid){const a=ath(aid);if(a&&a.ownLogin&&a.phone)return a.phone;const c=primaryContact(famOf(a));return c?c.phone:(a&&a.phone)||""}
@@ -1073,6 +1075,7 @@ function vParentSchedule(){
   const blocked=blockedForOwing(f.id);
   return `${kidSwitch()}<div class="row between"><div><h2>Request a session</h2><div class="muted small">Pick an open time. Coach Gil approves it, then you get a confirmation.</div></div>
   <div class="seg sm"><button class="${U.schedView==="week"?"on":""}" data-act="schedView" data-v="week">Week</button><button class="${U.schedView==="month"?"on":""}" data-act="schedView" data-v="month">Month</button></div></div>
+  ${Store.mode==="cloud"&&Cloud.login&&!Cloud.login.has_login?`<div class="notice warn"><b>Pick a password</b> so you can log back in from any phone. <button class="btn sm primary" data-act="setPass">Pick a password</button></div>`:""}
   ${blocked?`<div class="notice bad"><b>Balance due: ${money(owes(f.id))}.</b> Please pay before requesting a new session. ${S.settings.zelle?`Zelle: <b>${esc(S.settings.zelle)}</b>.`:""} <button class="btn sm" data-act="pTab" data-v="pay">See balance</button></div>`:""}
   ${U.schedView==="month"?monthView(true):weekView(true)}
   <div class="small muted">Each day opens for requests one week ahead, at ${tlabel(S.settings.openAtMin)}. Up to ${S.settings.weeklyLimit} a week; a ${ord(S.settings.weeklyLimit+1)} goes to Coach Gil to approve if there's room.</div>`;
@@ -1135,7 +1138,8 @@ function vParentPay(){
   <div class="card"><div class="row"><div class="stat"><span class="v">${money(owes(f.id))}</span><span class="u">${ch.length?"due":"All paid up. Thank you!"}</span></div></div>
   ${ch.length?`<div class="list" style="margin-top:8px">${ch.map(c=>`<div class="item"><div class="main"><div class="nm">${esc(ath(c.aid).first)}</div><div class="muted small">${esc(c.label)}</div></div><b>${money(c.amount)}</b></div>`).join("")}</div>`:""}</div>
   ${S.settings.zelle?`<div class="zelle"><span class="zl">Zelle</span><div>Send to: <b>${esc(S.settings.zelle)}</b></div><div class="small">Coach Gil marks it paid once it arrives.</div></div>`:`<div class="small muted">Ask Coach Gil how to pay.</div>`}
-  <div class="small muted">Prices: ${money(S.settings.prices.single)} a session · ${S.settings.prices.packSize} for ${money(S.settings.prices.packPrice)} · Swing analysis ${money(S.settings.prices.swing)}/month</div>`;
+  <div class="small muted">Prices: ${money(S.settings.prices.single)} a session · ${S.settings.prices.packSize} for ${money(S.settings.prices.packPrice)} · Swing analysis ${money(S.settings.prices.swing)}/month</div>
+  ${Store.mode==="cloud"&&Cloud.login?`<button class="btn sm ghost" data-act="setPass" style="align-self:flex-start">${Cloud.login.has_login?"Change password":"Pick a password"}</button>`:""}`;
 }
 function vParentProgress(){const a=pKid();if(!a)return "";return `${kidSwitch()}<h2>${esc(a.first)}'s progress</h2>${profTracking(a,true)}`}
 ACT.pTab=(el,v)=>{closeModal();U.tab=v;render()};
@@ -1458,6 +1462,7 @@ function guideSheet(){
   <li><div><b>Check your hours.</b> Settings › Your weekly hours. Your times are already in. Change any day on the schedule (rain, tournament, extra hours).</div></li>
   <li><div><b>Add your athletes.</b> Athletes › Sign-up link: send it to clients and they fill in their own info. Or Add a family yourself: parent's name and cell, then the kids. Kids already on a package? Add the package and type how many sessions are left.</div></li>
   <li><div><b>Send invites.</b> On a kid's page, tap Send invite next to the parent. It opens WhatsApp with the link ready, or copy it into an email. High schoolers and up can get their own.</div></li>
+  <li><div><b>Logging back in.</b> Parents pick a password and log in from any phone with their cell. Forgot it, or never picked one? Tap Send invite on their page. The link lets them pick a new one.</div></li>
   <li><div><b>Approve requests.</b> Parents request open times. You approve or decline on the Today tab, then tap Confirm to send the WhatsApp confirmation.</div></li>
   <li><div><b>Reminders.</b> Each day, Today shows tomorrow's sessions with a Remind button. One tap per family.</div></li>
   <li><div><b>Money.</b> Mark sessions and packages paid as Zelle comes in. Families who owe can't request until they pay, unless you unlock them.</div></li>
@@ -1519,7 +1524,17 @@ const Cloud={
   },
   /* ---------- screens before the app ---------- */
   screen(html){$("#bars").innerHTML="";$("#tabs").innerHTML="";$("#hdrActions").innerHTML="";$("#app").innerHTML=`<div class="card" style="margin-top:24px;text-align:center">${html}</div>`},
-  askForLink(){this.screen(`<h2>Welcome</h2><p class="muted">This app is by invitation. Ask Coach Gil to send you your link.</p>`)},
+  /* signed out: log in with cell + password (stops the 20-second refresh so typing isn't wiped) */
+  askForLink(note){
+    clearInterval(this.timer);this.timer=null;
+    this.screen(`<h2>Log in</h2><p class="muted">Use your cell and the password you picked.</p>${note?`<div class="notice info small" style="text-align:left">${note}</div>`:""}
+    <form class="fields" style="text-align:left" autocomplete="on">
+      <div class="field"><label for="lg-c">Your cell</label><input id="lg-c" type="tel" autocomplete="username" value="${esc(U.lgCell||"")}"></div>
+      <div class="field"><label for="lg-p">Password</label><input id="lg-p" type="password" autocomplete="current-password"></div>
+      <button type="button" class="btn primary" data-act="cloudLogin">Log in</button></form>
+    <p class="small muted">Forgot your password, or never picked one? Ask Coach Gil to send you your link.</p>
+    ${this.join?`<button class="btn ghost" data-act="jnBack">New here? Sign up</button>`:`<p class="small muted">New here? Ask Coach Gil for the sign-up link.</p>`}`);
+  },
   showError(){this.screen(`<h2>Can't connect</h2><p class="muted">Check your internet and try again.</p><button class="btn primary" data-act="cloudRetry">Try again</button>`)},
   /* ---------- start ---------- */
   async start(){
@@ -1530,7 +1545,7 @@ const Cloud={
     if(j){
       this.join=j[1];
       if(this.sess){let who=null;try{who=await this.rpc("hwg_whoami")}catch(e){}if(who&&who.role){history.replaceState(null,"",location.pathname+location.search);await this.enter();return}}
-      U.jn={parent:"",phone:"",email:"",kids:[{first:"",last:"",level:"Youth",age:""}]};this.drawJoin();return;
+      U.jn=newJoin();this.drawJoin();return;
     }
     if(!this.sess){this.askForLink();return}
     await this.enter();
@@ -1540,9 +1555,11 @@ const Cloud={
     const n=U.jn;const lv=k=>LEVELS.map(l=>`<option ${l===k.level?"selected":""}>${l}</option>`).join("");
     $("#bars").innerHTML="";$("#tabs").innerHTML="";$("#hdrActions").innerHTML="";
     $("#app").innerHTML=`<h2>Sign up with Coach Gil</h2><div class="muted small">Fill this out once, then pick a time. Coach Gil approves each session.</div>
+    <div class="notice info small">Already signed up? <button class="btn sm" data-act="cloudShowLogin">Log in</button></div>
     <div class="card fields"><h3>Parent or guardian</h3>
       <div class="field"><label for="jn-p">Your full name</label><input id="jn-p" autocomplete="name" value="${esc(n.parent)}" data-in="jn" data-f="parent"></div>
-      <div class="field"><label for="jn-c">Your cell</label><input id="jn-c" type="tel" autocomplete="tel" value="${esc(n.phone)}" data-in="jn" data-f="phone"></div>
+      <div class="field"><label for="jn-c">Your cell</label><input id="jn-c" type="tel" autocomplete="username" value="${esc(n.phone)}" data-in="jn" data-f="phone"></div>
+      <div class="field"><label for="jn-w">Pick a password (6 or more letters or numbers)</label><input id="jn-w" type="password" autocomplete="new-password" value="${esc(n.password)}" data-in="jn" data-f="password"><div class="small muted">You'll use your cell and this password to log back in from any phone.</div></div>
       <div class="field"><label for="jn-e">Email (optional)</label><input id="jn-e" type="email" autocomplete="email" value="${esc(n.email)}" data-in="jn" data-f="email"></div></div>
     ${n.kids.map((k,i)=>`<div class="card fields"><div class="row between"><h3>Athlete${n.kids.length>1?" "+(i+1):""}</h3>${i?`<button class="btn sm ghost" data-act="jnDel" data-v="${i}">Remove</button>`:""}</div>
       <div class="field"><label for="jk${i}f">First name</label><input id="jk${i}f" value="${esc(k.first)}" data-in="jnk" data-i="${i}" data-f="first"></div>
@@ -1558,7 +1575,8 @@ const Cloud={
       this.who=await this.rpc("hwg_whoami");
       if(!this.who||!this.who.role){this.askForLink();return}
       Store.mode="cloud";
-      if(this.who.role==="coach"){await this.loadCoach(true);U.role="coach"}else{await this.loadParent(true);U.role="parent";U.tab="book"}
+      if(this.who.role==="coach"){await this.loadCoach(true);U.role="coach"}else{await this.loadParent(true);U.role="parent";U.tab="book";
+        try{this.login=await this.rpc("hwg_login_status")}catch(e){this.login=null}}
       U.day=nextOpenDay();
       if(this.who.role==="coach"){const a=ensureRegulars();ensureSubs();if(a)save()}
       render();
@@ -1663,9 +1681,10 @@ const Cloud={
     <div class="row"><a class="btn wa" href="${waHref(p,text)}" target="_blank" rel="noopener">Tell Coach Gil on WhatsApp</a><button class="btn ghost" data-act="close">Done</button></div>`);
   },
   /* ---------- keep up to date ---------- */
-  startPolling(){if(this.timer)return;this.timer=setInterval(()=>this.tick(),20000);document.addEventListener("visibilitychange",()=>{if(!document.hidden)this.tick()})},
+  startPolling(){if(this.timer)return;this.timer=setInterval(()=>this.tick(),20000);
+    if(!this.visHooked){this.visHooked=true;document.addEventListener("visibilitychange",()=>{if(!document.hidden)this.tick()})}},
   async tick(){
-    if(document.hidden||this.ticking||$("#modal .sheet"))return;
+    if(!this.timer||document.hidden||this.ticking||$("#modal .sheet"))return; /* signed out: no refresh */
     const ae=document.activeElement;if(ae&&/INPUT|TEXTAREA|SELECT/.test(ae.tagName))return;
     this.ticking=true;
     try{
@@ -1691,17 +1710,56 @@ ACT.jnSend=async el=>{
   const n=U.jn;
   if(n.parent.trim().length<2){toast("Add your name");return}
   if(digits(n.phone).length<10){toast("Add your cell number");return}
+  if((n.password||"").length<6){toast("Pick a password with at least 6 letters or numbers");return}
   if(!n.kids.every(k=>k.first.trim())){toast("Add each athlete's first name");return}
   el.disabled=true;el.textContent="Saving…";
   try{
     if(!Cloud.sess)Cloud.takeTokens(await Cloud.authPost("signup",{data:{}}));
     await Cloud.rpc("hwg_signup_join",{tok:Cloud.join,parent:n.parent,phone:n.phone,email:n.email,kids:n.kids});
+    try{await Cloud.rpc("hwg_login_set",{phone:n.phone,password:n.password})}catch(_){} /* if this fails, the app asks again */
     Cloud.join=null;U.jn=null;history.replaceState(null,"",location.pathname+location.search);
     await Cloud.enter();toast("You're signed up. Pick a time");
   }catch(e){
     if(e.message==="already_member"||e.message==="coach_device"){history.replaceState(null,"",location.pathname+location.search);await Cloud.enter();return}
+    if(e.message==="cell_on_file"){U.lgCell=n.phone;Cloud.askForLink("This cell is already signed up, so there's no need to sign up again. Log in below. If you never picked a password, ask Coach Gil for your link.");return}
     el.disabled=false;el.textContent="Continue";toast(JOIN_ERR[e.message]||"That didn't go through. Please try again");
   }
+};
+/* ---------- log in, and pick or change a password ---------- */
+function newJoin(){return {parent:"",phone:"",password:"",email:"",kids:[{first:"",last:"",level:"Youth",age:""}]}}
+const LOGIN_ERR={bad_login:"That cell and password don't match. If you never picked a password, ask Coach Gil for your link",login_locked:"Too many tries. Wait 15 minutes, or ask Coach Gil for your link",coach_device:"This phone is Coach Gil's. Log in on the parent's phone"};
+const PASS_ERR={bad_password:"Use at least 6 letters or numbers",bad_phone:"Please check your cell number",cell_not_on_family:"That cell isn't on your family. Ask Coach Gil to add it",cell_taken:"That cell already has a login for someone else. Use a different cell, or ask Coach Gil"};
+ACT.cloudShowLogin=()=>{U.lgCell=U.jn?U.jn.phone:"";Cloud.askForLink()};
+ACT.jnBack=()=>{if(!U.jn)U.jn=newJoin();Cloud.drawJoin()};
+ACT.cloudLogin=async el=>{
+  const cell=$("#lg-c").value,pw=$("#lg-p").value;U.lgCell=cell;
+  if(digits(cell).length<10){toast("Add your cell number");return}
+  if(!pw){toast("Add your password");return}
+  el.disabled=true;el.textContent="Logging in…";
+  try{
+    if(!Cloud.sess)Cloud.takeTokens(await Cloud.authPost("signup",{data:{}}));
+    const r=await Cloud.rpc("hwg_login",{phone:cell,password:pw});
+    if(r&&r.ok){Cloud.join=null;U.jn=null;U.lgCell="";history.replaceState(null,"",location.pathname+location.search);await Cloud.enter();return}
+    toast(LOGIN_ERR[r&&r.error]||"That didn't go through. Please try again");
+  }catch(e){toast("Couldn't connect. Check your internet and try again")}
+  el.disabled=false;el.textContent="Log in";
+};
+Cloud.passSheet=function(fromLink){
+  const L=this.login||{};const cells=L.cells||[];
+  modal(`${sheetHead(fromLink?"Pick a new password":L.has_login?"Change password":"Pick a password","Log back in from any phone with your cell and this password")}
+  <form class="fields" autocomplete="on">
+    <div class="field"><label for="sp-c">Your cell</label><input id="sp-c" type="tel" autocomplete="username" value="${esc(cells[0]||"")}"></div>
+    <div class="field"><label for="sp-p">Password (6 or more letters or numbers)</label><input id="sp-p" type="password" autocomplete="new-password"></div></form>
+  <div class="row"><button class="btn primary" data-act="savePass">Save</button><button class="btn ghost" data-act="close">Not now</button></div>`);
+};
+ACT.setPass=()=>Cloud.passSheet(false);
+ACT.savePass=async el=>{
+  const c=$("#sp-c").value,p=$("#sp-p").value;
+  if(digits(c).length<10){toast("Add your cell number");return}
+  if(p.length<6){toast("Use at least 6 letters or numbers");return}
+  el.disabled=true;
+  try{await Cloud.rpc("hwg_login_set",{phone:c,password:p});if(Cloud.login)Cloud.login.has_login=true;closeModal();render();toast("Saved. Log in with your cell and this password on any phone")}
+  catch(e){el.disabled=false;toast(PASS_ERR[e.message]||"That didn't go through. Please try again")}
 };
 ACT.signupLink=async()=>{
   try{const tok=await Cloud.rpc("hwg_signup_link",{rotate:false});Cloud.signupSheet(tok)}catch(e){toast("Couldn't get the link. Check your internet")}
@@ -1725,11 +1783,17 @@ ACT.cloudSignIn=async el=>{
   el.disabled=true;el.textContent="Signing in…";
   try{
     if(!Cloud.sess)Cloud.takeTokens(await Cloud.authPost("signup",{data:{}}));
-    await Cloud.rpc("hwg_claim",{tok:Cloud.invite});
+    const r=await Cloud.rpc("hwg_claim",{tok:Cloud.invite});
     Cloud.invite=null;await Cloud.enter();
+    if(r&&r.role!=="coach"&&Store.mode==="cloud"&&U.role==="parent"&&Cloud.login)Cloud.passSheet(true); /* Gil's link doubles as "forgot password" */
   }catch(e){
     const coach=e.message==="coach_device";
-    Cloud.screen(`<h2>${coach?"This phone is Coach Gil's":"That link has been used"}</h2><p class="muted">${coach?"Open this link on the parent's phone.":"Ask Coach Gil to send you a new link."}</p>${coach||Cloud.sess?`<button class="btn primary" data-act="cloudRetry">Back to the app</button>`:""}`);
+    if(coach){Cloud.screen(`<h2>This phone is Coach Gil's</h2><p class="muted">Open this link on the parent's phone.</p><button class="btn primary" data-act="cloudRetry">Back to the app</button>`);return}
+    if(e.message!=="invite_invalid"){el.disabled=false;el.textContent="Sign in";toast("Couldn't connect. Check your internet and tap Sign in again");return} /* keep the link */
+    Cloud.invite=null;
+    let who=null;if(Cloud.sess){try{who=await Cloud.rpc("hwg_whoami")}catch(_){}}
+    if(who&&who.role){await Cloud.enter();toast("That link was already used. You're still signed in");return}
+    Cloud.askForLink("That link has been used or has expired. Log in below, or ask Coach Gil for a new link.");
   }
 };
 ACT.addDevice=async()=>{
